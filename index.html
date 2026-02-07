@@ -5,48 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>重塑 Reshape - 意志与肉体的重构</title>
     
-    <!-- === PWA 图标与全屏设置 (核心新增) === -->
-    <!-- 自动生成一个红底白字的 "R" 图标 -->
+    <!-- PWA 图标与设置 -->
     <link rel="apple-touch-icon" sizes="180x180" href="https://ui-avatars.com/api/?name=R&background=e11d48&color=fff&size=512&font-size=0.6&bold=true">
     <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=R&background=e11d48&color=fff&size=512&font-size=0.6&bold=true">
-    
-    <!-- 开启 iOS 全屏模式 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0F172A">
-    <!-- ==================================== -->
 
-    <!-- 1. 引入 Tailwind CSS (样式库) -->
+    <!-- 核心库 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. 引入 Google Material Icons (图标库) -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    
-    <!-- 3. 引入 React 和核心库 -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- 引入依赖 -->
     <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
     <script src="https://unpkg.com/recharts@2.12.0/umd/Recharts.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F1F5F9; }
-        /* 隐藏滚动条 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .material-icons-round { vertical-align: middle; font-size: inherit; }
-        
-        /* 核心修复：强制日期控件使用暗色主题（白色图标/文字） */
-        input[type="date"] {
-            color-scheme: dark;
-        }
-        /* 修复 iOS 输入框默认圆角和阴影 */
-        input {
-            -webkit-appearance: none;
-            border-radius: 1rem; /* 对应 rounded-2xl */
-        }
+        input[type="date"] { color-scheme: dark; }
+        input { -webkit-appearance: none; border-radius: 1rem; }
     </style>
 </head>
 <body>
@@ -175,15 +156,48 @@
                 return { title: "稳如磐石", content: "在这个年纪，稳定即是胜利。不被情绪左右，像机器一样精准执行计划。", icon: "shield", color: "text-emerald-600" };
             }, [logs, raceMetrics, progress, streak]);
 
-            // --- Actions ---
+            // --- Actions (已修复修改功能) ---
+            const openEditModal = (log) => {
+                setFormData({
+                    date: log.date,
+                    weight: log.weight,
+                    // 修复：防止空值导致 Input 变成非受控组件
+                    fat: log.fat || '',
+                    muscle: log.muscle || ''
+                });
+                setEditingLogId(log.id);
+                setIsEntryOpen(true);
+            };
+
+            const closeEntryModal = () => {
+                setIsEntryOpen(false);
+                setEditingLogId(null); // 修复：关闭时彻底清空编辑状态
+            };
+
             const handleSaveLog = (e) => {
                 e.preventDefault();
                 if (!formData.weight) return;
-                const logEntry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 };
-                const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? logEntry : l) : [logEntry, ...logs];
+                const logEntry = { 
+                    ...formData, 
+                    id: editingLogId || Date.now(), 
+                    weight: parseFloat(formData.weight), 
+                    fat: parseFloat(formData.fat) || 0, 
+                    muscle: parseFloat(formData.muscle) || 0 
+                };
+                
+                const newLogs = editingLogId 
+                    ? logs.map(l => l.id === editingLogId ? logEntry : l)
+                    : [logEntry, ...logs];
+                
                 setLogs(newLogs.sort((a, b) => new Date(b.date) - new Date(a.date)));
-                setIsEntryOpen(false); setEditingLogId(null);
+                closeEntryModal();
                 setFormData({ date: new Date().toISOString().split('T')[0], weight: '', fat: '', muscle: '' });
+            };
+
+            const deleteLog = (id) => {
+                if (window.confirm("确定删除这条记录？")) {
+                    setLogs(logs.filter(l => l.id !== id));
+                }
             };
 
             const handleReset = () => {
@@ -218,7 +232,6 @@
                 </div>
             );
 
-            // --- Onboarding ---
             if (!profile.initialized) {
                 return (
                     <div className="max-w-md mx-auto min-h-screen bg-slate-900 flex flex-col p-8 justify-center text-white">
@@ -263,7 +276,6 @@
                 );
             }
 
-            // --- Main App ---
             return (
                 <div className="max-w-md mx-auto bg-[#F1F5F9] min-h-screen font-sans text-slate-900 pb-32 overflow-x-hidden">
                     <header className="relative bg-[#0F172A] pb-24 rounded-b-[3.5rem] overflow-hidden shadow-2xl">
@@ -392,7 +404,7 @@
 
                     {isEntryOpen && (
                         <div className="fixed inset-0 z-[60] flex items-end">
-                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setIsEntryOpen(false)}></div>
+                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={closeEntryModal}></div>
                             <div className="relative w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-300">
                                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
                                 <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2">
