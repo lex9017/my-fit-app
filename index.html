@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>重塑 Reshape</title>
     
-    <!-- === PWA 核心配置 (Base64 强制内嵌 Spike 图标) === -->
-    <!-- 这是一个纯代码生成的 Spike 图标，不再依赖外部链接，确保 iOS 能正确读取 -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBGMTcyQSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj5SPC90ZXh0PjxwYXRoIGQ9Ik0zMjAgNDAgTDE5MCAyNzAgSDI3MCBMMTcwIDQ5MCBMMzUwIDIyMCBIMjYwIEwzMjAgNDAgWiIgZmlsbD0iI0ZBQ0MxNSIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE1Ii8+PC9zdmc+">
-    <link rel="icon" type="image/png" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBGMTcyQSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj5SPC90ZXh0PjxwYXRoIGQ9Ik0zMjAgNDAgTDE5MCAyNzAgSDI3MCBMMTcwIDQ5MCBMMzUwIDIyMCBIMjYwIEwzMjAgNDAgWiIgZmlsbD0iI0ZBQ0MxNSIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE1Ii8+PC9zdmc+">
+    <!-- === PWA 核心配置 (强制内嵌 Base64 图标) === -->
+    <!-- 这是一个纯代码绘制的 Spike 图标 (黑底+白R+黄闪电)，不再依赖外部网络，确保 iOS 能 100% 读取 -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjojMEYxNzJBIj48dGV4dCB4PSI1MCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI4NSIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlI8L3RleHQ+PHBhdGggZD0iTTcwIDAgTDQwIDUwIEg1NSBMMjUgMTAwIEw2MCA1MCBINTAgTDcwIDBaIiBmaWxsPSIjZmFjYzE1Ii8+PC9zdmc+">
+    <link rel="icon" type="image/png" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjojMEYxNzJBIj48dGV4dCB4PSI1MCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI4NSIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlI8L3RleHQ+PHBhdGggZD0iTTcwIDAgTDQwIDUwIEg1NSBMMjUgMTAwIEw2MCA1MCBINTAgTDcwIDBaIiBmaWxsPSIjZmFjYzE1Ii8+PC9zdmc+">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -60,6 +60,14 @@
                 </div>
             </div>
         );
+
+        const ACTIVITY_LEVELS = [
+            { val: 1.2, label: "久坐", desc: "极少运动，办公室工作" },
+            { val: 1.375, label: "轻度", desc: "每周运动 1-3 次" },
+            { val: 1.55, label: "中度", desc: "每周运动 3-5 次" },
+            { val: 1.725, label: "高度", desc: "每周运动 6-7 次" },
+            { val: 1.9, label: "专业", desc: "体力工作或双倍训练" }
+        ];
 
         const { useState, useEffect, useMemo } = React;
         const RechartsObj = window.Recharts || null;
@@ -162,11 +170,11 @@
         // --- 3. 主程序 ---
         const App = () => {
             const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_profile_v4_3'); // New version key
-                return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
+                const saved = localStorage.getItem('pro_fit_profile_v4_6'); // New key
+                return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
             });
             const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_logs_v4_3'); // New version key
+                const saved = localStorage.getItem('pro_fit_logs_v4_6'); // New key
                 return saved ? JSON.parse(saved) : [];
             });
 
@@ -191,7 +199,6 @@
                 const d = new Date(); d.setDate(d.getDate() + days);
                 return d.toISOString().split('T')[0];
             };
-            
             const calculateDateFromRate = (rate, currentW, targetW) => {
                  const start = parseFloat(currentW);
                  const target = parseFloat(targetW);
@@ -204,13 +211,11 @@
                  d.setDate(d.getDate() + days);
                  return d.toISOString().split('T')[0];
             };
-
             const handleOnboardingGoalChange = (newRate, newTargetWeight) => {
                 setWeeklyRate(newRate);
                 const newDate = calculateDateFromRate(newRate, profile.startWeight, newTargetWeight);
                 setProfile(prev => ({ ...prev, targetWeight: newTargetWeight, targetDate: newDate }));
             };
-
             const handleSettingsGoalChange = (rate, w) => {
                 setWeeklyRate(rate);
                 const newDate = calculateDateFromRate(rate, profile.startWeight, w);
@@ -222,10 +227,13 @@
                 const hM = prof.height / 100;
                 let bmr = (10 * weight) + (6.25 * prof.height) - (5 * prof.age);
                 bmr = prof.gender === 'male' ? bmr + 5 : bmr - 161;
+                // TDEE 计算
+                const tdee = Math.round(bmr * (prof.activityLevel || 1.2));
                 const fatRate = (fatMass && weight) ? ((fatMass / weight) * 100) : 0;
                 const ffmi = ((weight - (fatMass || 0)) / (hM * hM) + 6.1 * (1.8 - hM)).toFixed(1);
-                return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
+                return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), tdee: tdee, fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
             };
+
             const calculateWeeklyData = () => {
                 if (logs.length === 0) return [];
                 const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -240,6 +248,7 @@
                 return Object.keys(groups).sort((a,b)=>a-b).map(k => ({ week: `W${parseInt(k)+1}`, avgWeight: parseFloat((groups[k].sum/groups[k].count).toFixed(1)) }))
                     .map((w, i, arr) => ({ ...w, change: i === 0 ? 0 : parseFloat((w.avgWeight - arr[i-1].avgWeight).toFixed(1)) }));
             };
+
             const calculateTrendData = () => {
                 if (logs.length === 0) return [];
                 const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -267,9 +276,28 @@
                     fatRate: m ? m.fatRate : 0, 
                     ffmi: m ? m.ffmi : 0, 
                     bmr: m ? m.bmr : 0, 
+                    tdee: m ? m.tdee : 0,
                     dateLabel: dateLabel 
                 };
             }, [logs, profile]);
+
+            // Daily Calorie Target
+            const dailyTarget = useMemo(() => {
+                if (!currentStats || !currentStats.tdee) return 0;
+                // 1kg fat approx 7700 kcal. Daily deficit = (weeklyRate * 7700) / 7
+                const dailyDeficit = (weeklyRate * 7700) / 7;
+                return Math.round(currentStats.tdee - dailyDeficit);
+            }, [currentStats, weeklyRate]);
+
+            // Macro Breakdown (50/30/20)
+            const macros = useMemo(() => {
+                if (!dailyTarget) return null;
+                return {
+                    carbs: Math.round(dailyTarget * 0.5 / 4), // 50% Carbs (4kcal/g)
+                    protein: Math.round(dailyTarget * 0.3 / 4), // 30% Protein (4kcal/g)
+                    fat: Math.round(dailyTarget * 0.2 / 9) // 20% Fat (9kcal/g)
+                };
+            }, [dailyTarget]);
 
             const streak = useMemo(() => {
                 if (logs.length === 0) return 0;
@@ -311,7 +339,7 @@
                     else if (r >= 0.7) { rate = 70; advice = `速度 (${cur.toFixed(1)}kg/周) 稍慢。建议增加 200kcal 缺口。`; }
                     else { rate = 40; advice = '进度滞后，需要严格执行或延长日期。'; }
                 }
-                return { cur, need, rate, advice };
+                return { cur, need, rate, advice, isStagnant: cur <= 0 };
             }, [weeklyData, currentStats, profile, raceMetrics]);
 
             const coachMessage = useMemo(() => {
@@ -344,22 +372,21 @@
             const requestDelete = (id) => { setDeleteId(id); }; 
             const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
             const confirmReset = () => { 
-                localStorage.removeItem('pro_fit_profile_v4_3'); 
-                localStorage.removeItem('pro_fit_logs_v4_3'); 
-                setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
+                localStorage.removeItem('pro_fit_profile_v4_5'); 
+                localStorage.removeItem('pro_fit_logs_v4_5'); 
+                setProfile({ age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
                 setLogs([]); 
                 setOnboardingStep(0); 
                 setIsSettingsOpen(false); 
                 setIsResetConfirmOpen(false);
             };
             
-            // 打开设置时，初始化 tempProfile
             const openSettings = () => {
                 setTempProfile(profile);
                 setIsSettingsOpen(true);
             };
 
-            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_3', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_3', JSON.stringify(logs)); }, [profile, logs]);
+            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_5', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_5', JSON.stringify(logs)); }, [profile, logs]);
             useEffect(() => { if (onboardingStep === 5) { setTimeout(() => { if (profile.startWeight) setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); setProfile(p => ({...p, initialized: true})); }, 2000); } }, [onboardingStep]);
 
             if (!profile.initialized) {
@@ -384,10 +411,27 @@
                                 <button onClick={()=>setOnboardingStep(2)} disabled={!profile.name || !profile.gender} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
                             </div>}
 
+                            {/* Added Activity Level to Step 2 */}
                             {onboardingStep === 2 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">身体参数</h2>
-                                <div className="space-y-8"><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">身高 (CM)</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.height} onChange={e=>setProfile({...profile, height:e.target.value})}/></div><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">年龄</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.age} onChange={e=>setProfile({...profile, age:e.target.value})}/></div></div>
-                                <button onClick={()=>setOnboardingStep(3)} disabled={!profile.height || !profile.age} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                                <div className="space-y-6">
+                                    <div className="flex gap-4">
+                                        <div className="flex-1"><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">身高 (CM)</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-3xl font-bold outline-none" value={profile.height} onChange={e=>setProfile({...profile, height:e.target.value})}/></div>
+                                        <div className="flex-1"><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">年龄</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-3xl font-bold outline-none" value={profile.age} onChange={e=>setProfile({...profile, age:e.target.value})}/></div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-indigo-400 font-bold uppercase block mb-3">日常活动强度</label>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {ACTIVITY_LEVELS.map(level => (
+                                                <button key={level.val} onClick={() => setProfile({...profile, activityLevel: level.val})} className={`p-4 rounded-xl text-left border transition-all ${profile.activityLevel === level.val ? 'border-amber-500 bg-amber-500/10' : 'border-slate-800 bg-slate-900'}`}>
+                                                    <div className={`text-sm font-bold ${profile.activityLevel === level.val ? 'text-amber-500' : 'text-slate-300'}`}>{level.label}</div>
+                                                    <div className="text-xs text-slate-500 mt-0.5">{level.desc}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={()=>setOnboardingStep(3)} disabled={!profile.height || !profile.age} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
                             </div>}
 
                             {onboardingStep === 3 && <div className="w-full slide-up">
@@ -429,6 +473,44 @@
                         <div className="bg-white p-6 rounded-[2.5rem] card-shadow border border-white flex gap-4 items-start animate-in fade-in slide-in-from-bottom-6 duration-700">
                             <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0 shadow-inner"><Icon name={coachMessage.icon} className={coachMessage.color}/></div>
                             <div><h3 className="font-black text-sm mb-1 text-slate-800">{coachMessage.title}</h3><p className="text-xs text-slate-500 leading-relaxed font-medium">{coachMessage.content}</p></div>
+                        </div>
+
+                        {/* Energy Card (With 5:3:2 Macros) */}
+                        <div className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100 shadow-sm relative overflow-hidden">
+                             <div className="absolute -right-6 -top-6 w-24 h-24 bg-amber-500/10 rounded-full blur-xl"></div>
+                             <div className="flex justify-between items-start relative z-10">
+                                 <div>
+                                     <h3 className="text-lg font-black text-amber-900 flex items-center gap-2"><Icon name="local_fire_department" className="text-amber-500" size={20}/> 每日能量规划</h3>
+                                     <p className="text-[10px] font-bold text-amber-700/60 mt-1">基于 {weeklyRate}kg/周 减重速度</p>
+                                 </div>
+                                 <div className="text-right">
+                                     <span className="text-3xl font-black text-amber-600">{dailyTarget}</span>
+                                     <div className="text-[10px] font-bold text-amber-500 uppercase">KCAL / Day</div>
+                                 </div>
+                             </div>
+                             {/* 5:3:2 营养素推荐 */}
+                             {macros && (
+                                <div className="mt-4 pt-4 border-t border-amber-200/30">
+                                    <div className="flex justify-between items-center mb-2">
+                                         <span className="text-[10px] font-bold text-amber-800 uppercase opacity-70">5:3:2 饮食法推荐</span>
+                                         {prediction?.isStagnant && <span className="text-[8px] font-bold text-rose-500 bg-white px-1.5 py-0.5 rounded shadow-sm border border-rose-100 flex items-center gap-1"><Icon name="warning" size={10}/> 平台期：建议降低碳水</span>}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 bg-white/60 p-2 rounded-xl text-center">
+                                            <div className="text-[10px] text-amber-500 font-bold mb-0.5">碳水 (50%)</div>
+                                            <div className="text-base font-black text-amber-900">{macros.carbs}g</div>
+                                        </div>
+                                        <div className="flex-1 bg-white/60 p-2 rounded-xl text-center">
+                                            <div className="text-[10px] text-amber-500 font-bold mb-0.5">蛋白 (30%)</div>
+                                            <div className="text-base font-black text-amber-900">{macros.protein}g</div>
+                                        </div>
+                                         <div className="flex-1 bg-white/60 p-2 rounded-xl text-center">
+                                            <div className="text-[10px] text-amber-500 font-bold mb-0.5">脂肪 (20%)</div>
+                                            <div className="text-base font-black text-amber-900">{macros.fat}g</div>
+                                        </div>
+                                    </div>
+                                </div>
+                             )}
                         </div>
 
                         <div className="bg-[#0F172A] p-7 rounded-[3rem] shadow-xl text-white relative overflow-hidden border border-slate-800">
