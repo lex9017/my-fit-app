@@ -3,434 +3,476 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>重塑 Reshape - 意志与肉体的重构</title>
+    <title>重塑 Reshape</title>
     
-    <!-- PWA 图标与设置 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="https://ui-avatars.com/api/?name=R&background=e11d48&color=fff&size=512&font-size=0.6&bold=true">
-    <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=R&background=e11d48&color=fff&size=512&font-size=0.6&bold=true">
+    <!-- PWA 配置 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://ui-avatars.com/api/?name=R&background=0f172a&color=facc15&size=512&font-size=0.6&bold=true">
+    <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=R&background=0f172a&color=facc15&size=512&font-size=0.6&bold=true">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0F172A">
+    <meta name="theme-color" content="#1E293B">
 
-    <!-- 核心库 -->
+    <!-- 依赖 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.12.0/umd/Recharts.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F1F5F9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F8FAFC; color: #1e293b; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .material-icons-round { vertical-align: middle; font-size: inherit; }
-        input[type="date"] { color-scheme: dark; }
-        input { -webkit-appearance: none; border-radius: 1rem; }
+        input[type="date"] { color-scheme: light; }
+        input { -webkit-appearance: none; border-radius: 0; outline: none; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .slide-up { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .font-brand { font-family: 'Montserrat', sans-serif; font-style: italic; }
+        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .glass-nav { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #6366f1; margin-top: -8px; box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const Icon = ({ name, className, size = 24 }) => {
-            const style = { fontSize: size + 'px' };
-            return <span className={`material-icons-round ${className}`} style={style}>{name}</span>;
-        };
+        const Icon = ({ name, className, size = 24 }) => <span className={`material-icons-round ${className}`} style={{fontSize: size+'px'}}>{name}</span>;
+
+        const SpikeLogo = ({ className, size = 48 }) => (
+            <div className={`relative flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
+                <div className="relative w-full h-full">
+                    <span className="font-brand font-black text-white absolute inset-0 flex items-center justify-center transform scale-y-110" style={{ fontSize: size * 0.85 + 'px' }}>R</span>
+                    <svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" viewBox="0 0 100 100" style={{ zIndex: 10 }}>
+                        <path d="M70 0 L40 50 H55 L25 100 L60 50 H50 L70 0Z" fill="#facc15" />
+                    </svg>
+                </div>
+            </div>
+        );
 
         const { useState, useEffect, useMemo } = React;
-        const { AreaChart, Area, ResponsiveContainer } = window.Recharts || { AreaChart: () => null, Area: () => null, ResponsiveContainer: ({children}) => <div>{children}</div> };
+        const RechartsObj = window.Recharts || null;
 
-        const App = () => {
-            const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_profile_final');
-                return saved ? JSON.parse(saved) : {
-                    age: '', height: '', gender: 'male', 
-                    startWeight: '', targetWeight: '', targetFatRate: '', targetDate: '',
-                    planStartDate: new Date().toISOString().split('T')[0],
-                    name: '', initialized: false
-                };
-            });
-
-            const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_logs_final');
-                return saved ? JSON.parse(saved) : [];
-            });
-
-            const [activeTab, setActiveTab] = useState('home');
-            const [isEntryOpen, setIsEntryOpen] = useState(false);
-            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-            const [editingLogId, setEditingLogId] = useState(null);
-            
-            const [formData, setFormData] = useState({
-                date: new Date().toISOString().split('T')[0],
-                weight: '', muscle: '', fat: '', exercise: ''
-            });
-
-            const [tempProfile, setTempProfile] = useState(profile);
-
-            // --- Helpers ---
-            const getGreeting = () => {
-                const hour = new Date().getHours();
-                if (hour < 5) return { text: "凌晨", icon: "bedtime", color: "text-indigo-400" };
-                if (hour < 11) return { text: "重塑时刻", icon: "fitness_center", color: "text-orange-500" };
-                if (hour < 18) return { text: "保持清醒", icon: "bolt", color: "text-amber-500" };
-                return { text: "内省", icon: "nights_stay", color: "text-slate-400" };
-            };
-
-            const calculateStreak = () => {
-                if (logs.length === 0) return 0;
-                const sortedDates = [...new Set(logs.map(l => l.date))].sort((a, b) => new Date(b) - new Date(a));
-                let streak = 0;
-                const today = new Date().toISOString().split('T')[0];
-                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-                if (sortedDates[0] !== today && sortedDates[0] !== yesterday) return 0;
-                let currentDate = new Date(sortedDates[0]);
-                streak++;
-                for (let i = 1; i < sortedDates.length; i++) {
-                    const prevDate = new Date(sortedDates[i]);
-                    const diffTime = Math.abs(currentDate - prevDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                    if (diffDays === 1) { streak++; currentDate = prevDate; } else { break; }
-                }
-                return streak;
-            };
-
-            const streak = useMemo(calculateStreak, [logs]);
-            const greeting = getGreeting();
-
-            // --- Metrics ---
-            const calculateMetrics = (weight, fatMass, muscleMass, prof) => {
-                if (!weight || !prof.height || !prof.age) return null;
-                const hM = prof.height / 100;
-                const bmi = (weight / (hM * hM)).toFixed(1);
-                let bmr = (10 * weight) + (6.25 * prof.height) - (5 * prof.age);
-                bmr = prof.gender === 'male' ? bmr + 5 : bmr - 161;
-                const fatRate = (fatMass && weight) ? ((fatMass / weight) * 100) : 0;
-                const lbm = weight - (fatMass || 0);
-                const ffmiRaw = lbm / (hM * hM);
-                const ffmi = (ffmiRaw + 6.1 * (1.8 - hM)).toFixed(1);
-                return { bmi, bmr: Math.round(bmr), fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
-            };
-
-            const currentStats = useMemo(() => {
-                if (logs.length === 0) return null;
-                const latest = logs[0];
-                const prev = logs[1] || null;
-                const current = calculateMetrics(latest.weight, latest.fat, latest.muscle, profile);
-                const previous = prev ? calculateMetrics(prev.weight, prev.fat, prev.muscle, profile) : null;
-                return { ...latest, ...current, diff: previous ? { weight: (latest.weight - prev.weight).toFixed(1), bmr: current.bmr - previous.bmr, fatRate: (current.fatRate - previous.fatRate).toFixed(1) } : null };
-            }, [logs, profile]);
-
-            const progress = useMemo(() => {
-                const s = parseFloat(profile.startWeight);
-                const t = parseFloat(profile.targetWeight);
-                const c = parseFloat(currentStats?.weight || s);
-                if (!s || !t || s === t) return 0;
-                const totalGap = s - t;
-                const closedGap = s - c;
-                return Math.min(Math.max((closedGap / totalGap) * 100, 0), 100).toFixed(0);
-            }, [profile, currentStats]);
-
-            const raceMetrics = useMemo(() => {
-                if (!profile.planStartDate || !profile.targetDate) return { timeProgress: 0, weightProgress: parseFloat(progress), daysLeft: 0, status: 'EVEN' };
-                const start = new Date(profile.planStartDate).getTime();
-                const end = new Date(profile.targetDate).getTime();
-                const now = new Date().getTime();
-                const totalTime = end - start;
-                const elapsed = now - start;
-                const timeProgress = Math.min(Math.max((elapsed / totalTime) * 100, 0), 100).toFixed(1);
-                const weightProgress = parseFloat(progress);
-                let status = "EVEN";
-                if (weightProgress > parseFloat(timeProgress) + 5) status = "AHEAD";
-                if (weightProgress < parseFloat(timeProgress) - 5) status = "BEHIND";
-                return { timeProgress: parseFloat(timeProgress), weightProgress, status, daysLeft: Math.ceil((end - now) / (1000 * 60 * 60 * 24)) };
-            }, [profile, progress]);
-
-            const coachMessage = useMemo(() => {
-                if (logs.length === 0) return { title: "打破与重建", content: "减脂不是请客吃饭，而是一场自我革命。今天的第一步，决定了未来的高度。", icon: "flag", color: "text-indigo-500" };
-                if (streak >= 3 && logs[0].date === new Date().toISOString().split('T')[0]) return { title: `连续自律 ${streak} 天`, content: "你正在对抗惰性。这种痛苦的坚持，正是你在一点点夺回身体控制权的证明。", icon: "psychology", color: "text-yellow-600" };
-                if (raceMetrics.status === "AHEAD") return { title: "超越预期", content: `你的进度 (${progress}%) 领先于时间。但别松懈，对自己够狠，才能稳住优势。`, icon: "emoji_events", color: "text-amber-500" };
-                if (raceMetrics.status === "BEHIND") return { title: "逆境提示", content: "时间不等人。痛苦是成长的催化剂，调整呼吸，对抗皮质醇，我们必须追回来。", icon: "timer", color: "text-rose-500" };
-                return { title: "稳如磐石", content: "在这个年纪，稳定即是胜利。不被情绪左右，像机器一样精准执行计划。", icon: "shield", color: "text-emerald-600" };
-            }, [logs, raceMetrics, progress, streak]);
-
-            // --- Actions (已修复修改功能) ---
-            const openEditModal = (log) => {
-                setFormData({
-                    date: log.date,
-                    weight: log.weight,
-                    // 修复：防止空值导致 Input 变成非受控组件
-                    fat: log.fat || '',
-                    muscle: log.muscle || ''
-                });
-                setEditingLogId(log.id);
-                setIsEntryOpen(true);
-            };
-
-            const closeEntryModal = () => {
-                setIsEntryOpen(false);
-                setEditingLogId(null); // 修复：关闭时彻底清空编辑状态
-            };
-
-            const handleSaveLog = (e) => {
-                e.preventDefault();
-                if (!formData.weight) return;
-                const logEntry = { 
-                    ...formData, 
-                    id: editingLogId || Date.now(), 
-                    weight: parseFloat(formData.weight), 
-                    fat: parseFloat(formData.fat) || 0, 
-                    muscle: parseFloat(formData.muscle) || 0 
-                };
-                
-                const newLogs = editingLogId 
-                    ? logs.map(l => l.id === editingLogId ? logEntry : l)
-                    : [logEntry, ...logs];
-                
-                setLogs(newLogs.sort((a, b) => new Date(b.date) - new Date(a.date)));
-                closeEntryModal();
-                setFormData({ date: new Date().toISOString().split('T')[0], weight: '', fat: '', muscle: '' });
-            };
-
-            const deleteLog = (id) => {
-                if (window.confirm("确定删除这条记录？")) {
-                    setLogs(logs.filter(l => l.id !== id));
-                }
-            };
-
-            const handleReset = () => {
-                if (window.confirm("这将摧毁现有的所有记录，确定要重新开始重塑吗？")) {
-                    localStorage.removeItem('pro_fit_profile_final');
-                    localStorage.removeItem('pro_fit_logs_final');
-                    setProfile({ ...profile, initialized: false });
-                    setLogs([]);
-                    setIsSettingsOpen(false);
-                    setActiveTab('home');
-                }
-            };
-
-            useEffect(() => {
-                localStorage.setItem('pro_fit_profile_final', JSON.stringify(profile));
-                localStorage.setItem('pro_fit_logs_final', JSON.stringify(logs));
-            }, [profile, logs]);
-
-            const MiniChart = ({ data }) => (
-                <div className="h-16 w-full opacity-50 mt-2">
+        // --- Chart Components ---
+        const MiniChart = ({ data }) => {
+            if (!RechartsObj) return null;
+            const { AreaChart, Area, ResponsiveContainer } = RechartsObj;
+            return (
+                <div className="h-16 w-full opacity-40 mt-2">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={[...data].reverse().slice(-7)}>
-                            <defs>
-                                <linearGradient id="miniGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#fff" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="#fff" stopOpacity={0}/>
-                                </linearGradient>
-                            </defs>
+                            <defs><linearGradient id="miniGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fff" stopOpacity={0.3}/><stop offset="95%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
                             <Area type="monotone" dataKey="weight" stroke="#fff" strokeWidth={2} fill="url(#miniGradient)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
             );
+        };
+
+        const TrendChartDaily = ({ data }) => {
+            if (!RechartsObj) return <div className="h-full flex items-center justify-center text-xs text-slate-400">图表加载中...</div>;
+            const { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = RechartsObj;
+            return (
+                <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={data}>
+                            <defs><linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/><stop offset="95%" stopColor="#6366f1" stopOpacity={0}/></linearGradient></defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis dataKey="date" tick={{fontSize: 10, fill: '#94a3b8'}} tickLine={false} axisLine={false} />
+                            <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} labelStyle={{ color: '#64748b', fontSize: '12px' }} />
+                            <Line type="monotone" dataKey="rawWeight" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={{r: 3, fill: '#94a3b8'}} name="每日" />
+                            <Area type="monotone" dataKey="ma7Weight" stroke="#6366f1" strokeWidth={3} fill="url(#weightGradient)" name="均线" />
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        };
+
+        const TrendChartWeekly = ({ data }) => {
+            if (!RechartsObj) return <div className="h-full flex items-center justify-center text-xs text-slate-400">图表加载中...</div>;
+            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } = RechartsObj;
+            return (
+                <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                            <XAxis dataKey="week" tick={{fontSize: 10, fill: '#94a3b8'}} tickLine={false} axisLine={false} />
+                            <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
+                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                            <Bar dataKey="avgWeight" radius={[6, 6, 0, 0]} name="周均重">
+                                {data.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.change > 0 ? '#f43f5e' : '#10b981'} />))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        };
+
+        const Gauge = ({ title, value, unit, ranges, maxVal, minVal, dateLabel }) => {
+            const hasValue = value && !isNaN(value) && value > 0;
+            const displayValue = hasValue ? value : '--';
+            const percentage = hasValue ? Math.min(Math.max(((value - minVal) / (maxVal - minVal)) * 100, 0), 100) : 0;
+            const currentRange = hasValue ? (ranges.find(r => value >= r.min && value < r.max) || ranges[ranges.length - 1]) : { label: '待测算', color: 'bg-slate-200 text-slate-400' };
+            
+            return (
+                <div className="mb-8 last:mb-0">
+                    <div className="flex justify-between items-end mb-3">
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold text-slate-600 uppercase flex items-center gap-1 tracking-wider">{title}</span>
+                            {dateLabel && <span className="text-[9px] text-slate-400 font-medium mt-0.5 tracking-tight">记录: {dateLabel}</span>}
+                        </div>
+                        <div className="text-right flex items-center gap-2">
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md text-white shadow-sm ${currentRange.color}`}>{currentRange.label}</span>
+                            <span className="text-2xl font-black text-slate-800">{displayValue} <span className="text-xs text-slate-400">{unit}</span></span>
+                        </div>
+                    </div>
+                    <div className="relative h-4 w-full rounded-full flex overflow-hidden bg-slate-100">
+                        {ranges.map((range, index) => { 
+                            const rangeWidth = ((range.max - range.min) / (maxVal - minVal)) * 100; 
+                            return <div key={index} className={`${range.color.split(' ')[0]} h-full relative border-r border-white last:border-0 opacity-80`} style={{ width: `${rangeWidth}%` }}></div>; 
+                        })}
+                        <span className="absolute bottom-[-20px] left-0 text-[10px] font-bold text-slate-400">{minVal}</span>
+                    </div>
+                    <div className="flex justify-between mt-1 text-[9px] text-slate-500 font-bold uppercase relative h-4">
+                        {ranges.map((r,i) => (<span key={i} style={{width: `${((r.max - r.min)/(maxVal - minVal))*100}%`, textAlign:'center', display:'inline-block'}}>{r.label}</span>))}
+                    </div>
+                    {hasValue && (
+                        <div className="relative h-2 w-full mt-[-24px]">
+                            <div className="absolute top-[-8px] transition-all duration-1000 ease-out flex flex-col items-center" style={{ left: `${percentage}%`, transform: 'translateX(-50%)' }}>
+                                <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-slate-800 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- 3. 主程序 ---
+        const App = () => {
+            const [profile, setProfile] = useState(() => {
+                const saved = localStorage.getItem('pro_fit_profile_v3_7'); // New key to prevent conflicts
+                return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
+            });
+            const [logs, setLogs] = useState(() => {
+                const saved = localStorage.getItem('pro_fit_logs_v3_7'); // New key
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            const [onboardingStep, setOnboardingStep] = useState(0); 
+            const [weeklyRate, setWeeklyRate] = useState(0.5);
+            const [activeTab, setActiveTab] = useState('home');
+            const [isEntryOpen, setIsEntryOpen] = useState(false);
+            const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+            const [editingLogId, setEditingLogId] = useState(null);
+            
+            // Delete state
+            const [deleteId, setDeleteId] = useState(null);
+
+            const [trendViewMode, setTrendViewMode] = useState('daily');
+            const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], weight: '', muscle: '', fat: '' });
+            const [tempProfile, setTempProfile] = useState(profile);
+
+            // Calc (Unchanged logic)
+            const calculateTargetDate = (rate, targetW) => {
+                const start = parseFloat(profile.startWeight), target = parseFloat(targetW), r = parseFloat(rate);
+                if (!start || !target || !r) return null;
+                const days = Math.ceil(Math.abs(start - target) / r * 7);
+                const d = new Date(); d.setDate(d.getDate() + days);
+                return d.toISOString().split('T')[0];
+            };
+            const handleGoalChange = (rate, w) => {
+                const date = calculateTargetDate(rate, w);
+                setWeeklyRate(rate);
+                setProfile(prev => ({ ...prev, targetWeight: w, targetDate: date || prev.targetDate }));
+            };
+            const calculateMetrics = (weight, fatMass, muscleMass, prof) => {
+                if (!weight || !prof.height || !prof.age) return null;
+                const hM = prof.height / 100;
+                let bmr = (10 * weight) + (6.25 * prof.height) - (5 * prof.age);
+                bmr = prof.gender === 'male' ? bmr + 5 : bmr - 161;
+                const fatRate = (fatMass && weight) ? ((fatMass / weight) * 100) : 0;
+                const ffmi = ((weight - (fatMass || 0)) / (hM * hM) + 6.1 * (1.8 - hM)).toFixed(1);
+                return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
+            };
+            const calculateWeeklyData = () => {
+                if (logs.length === 0) return [];
+                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+                const groups = {};
+                const start = new Date(profile.planStartDate);
+                sorted.forEach(log => {
+                    const diff = Math.ceil(Math.abs(new Date(log.date) - start) / 86400000);
+                    const wIdx = Math.floor(Math.max(0, diff) / 7);
+                    if (!groups[wIdx]) groups[wIdx] = { sum: 0, count: 0 };
+                    groups[wIdx].sum += log.weight; groups[wIdx].count++;
+                });
+                return Object.keys(groups).sort((a,b)=>a-b).map(k => ({ week: `W${parseInt(k)+1}`, avgWeight: parseFloat((groups[k].sum/groups[k].count).toFixed(1)) }))
+                    .map((w, i, arr) => ({ ...w, change: i === 0 ? 0 : parseFloat((w.avgWeight - arr[i-1].avgWeight).toFixed(1)) }));
+            };
+            const calculateTrendData = () => {
+                if (logs.length === 0) return [];
+                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+                return sorted.map((log, i, arr) => {
+                    let sum = 0, count = 0;
+                    for (let j = i; j >= 0 && j > i - 7; j--) { if (arr[j].weight) { sum += arr[j].weight; count++; } }
+                    return { date: log.date.split('-').slice(1).join('/'), rawWeight: log.weight, ma7Weight: count > 0 ? parseFloat((sum/count).toFixed(1)) : null };
+                });
+            };
+
+            const trendData = useMemo(calculateTrendData, [logs]);
+            const weeklyData = useMemo(calculateWeeklyData, [logs, profile]);
+
+            // Fix: Add null check for calculated metrics
+            const currentStats = useMemo(() => {
+                if (logs.length === 0) return null;
+                const latest = logs[0];
+                const lastFat = logs.find(l => l.fat > 0);
+                const displayFat = latest.fat || (lastFat ? lastFat.fat : 0);
+                const displayMus = latest.muscle || (lastFat ? lastFat.muscle : 0);
+                const dateLabel = !latest.fat && lastFat ? lastFat.date : '';
+                
+                const m = calculateMetrics(latest.weight, displayFat, displayMus, profile);
+                
+                // Safe return with defaults if calculation fails
+                return { 
+                    weight: latest.weight, 
+                    fatRate: m ? m.fatRate : 0, 
+                    ffmi: m ? m.ffmi : 0, 
+                    bmr: m ? m.bmr : 0, 
+                    dateLabel: dateLabel 
+                };
+            }, [logs, profile]);
+
+            const streak = useMemo(() => {
+                if (logs.length === 0) return 0;
+                const dates = [...new Set(logs.map(l => l.date))].sort((a,b) => new Date(b)-new Date(a));
+                const today = new Date().toISOString().split('T')[0];
+                const yest = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                if (dates[0] !== today && dates[0] !== yest) return 0;
+                let s = 1, curr = new Date(dates[0]);
+                for (let i = 1; i < dates.length; i++) {
+                    if (Math.ceil(Math.abs(curr - new Date(dates[i]))/86400000) === 1) { s++; curr = new Date(dates[i]); } else break;
+                }
+                return s;
+            }, [logs]);
+
+            const progress = useMemo(() => {
+                const s = parseFloat(profile.startWeight), t = parseFloat(profile.targetWeight), c = parseFloat(currentStats?.weight || s);
+                if (!s || !t) return 0;
+                return Math.min(Math.max(((s - c) / (s - t)) * 100, 0), 100).toFixed(0);
+            }, [profile, currentStats]);
+
+            const raceMetrics = useMemo(() => {
+                if (!profile.planStartDate || !profile.targetDate) return { timeProgress: 0, weightProgress: 0, daysLeft: 0, status: 'EVEN' };
+                const total = new Date(profile.targetDate) - new Date(profile.planStartDate);
+                const elapsed = new Date() - new Date(profile.planStartDate);
+                const timePct = Math.min(Math.max((elapsed / total) * 100, 0), 100).toFixed(1);
+                const weightPct = parseFloat(progress);
+                return { timeProgress: parseFloat(timePct), weightProgress: weightPct, status: weightPct > parseFloat(timePct) + 5 ? 'AHEAD' : (weightPct < parseFloat(timePct) - 5 ? 'BEHIND' : 'EVEN'), daysLeft: Math.ceil((new Date(profile.targetDate) - new Date()) / 86400000) };
+            }, [profile, progress]);
+
+            const prediction = useMemo(() => {
+                if (weeklyData.length < 2) return null;
+                const cur = weeklyData[weeklyData.length-2].avgWeight - weeklyData[weeklyData.length-1].avgWeight;
+                const need = (currentStats?.weight - profile.targetWeight) / (raceMetrics.daysLeft / 7);
+                let rate = 0, advice = '';
+                if (cur <= 0) { rate = 10; advice = '周均重反弹。请检查饮食隐形热量或是否有过度压力。'; }
+                else {
+                    const r = cur / need;
+                    if (r >= 1.0) { rate = 95; advice = '速度完美！保持节奏即可准时达成目标。'; }
+                    else if (r >= 0.7) { rate = 70; advice = `速度 (${cur.toFixed(1)}kg/周) 稍慢。建议增加 200kcal 缺口。`; }
+                    else { rate = 40; advice = '进度滞后，需要严格执行或延长日期。'; }
+                }
+                return { cur, need, rate, advice };
+            }, [weeklyData, currentStats, profile, raceMetrics]);
+
+            const coachMessage = useMemo(() => {
+                if (logs.length === 0) return { title: "开启重塑", content: "第一步最难，但你已经迈出去了。准备好迎接新的肉体了吗？", icon: "flag", color: "text-indigo-500" };
+                if (streak >= 3 && logs[0].date === new Date().toISOString().split('T')[0]) return { title: `连续自律 ${streak} 天`, content: "你正在形成肌肉记忆。意志如铁，重塑新生！", icon: "bolt", color: "text-yellow-600" };
+                if (raceMetrics.status === "AHEAD") return { title: "完美领跑", content: `进度 (${progress}%) 领先于计划。对自己够狠，才能稳住优势。`, icon: "emoji_events", color: "text-amber-500" };
+                if (raceMetrics.status === "BEHIND") return { title: "状态提醒", content: "进度稍缓。试着今晚早睡一小时，代谢会感谢你的自律。", icon: "timer", color: "text-rose-500" };
+                return { title: "稳如磐石", content: "稳定的节奏就是最快的速度。像机器一样精准执行计划。", icon: "shield", color: "text-emerald-500" };
+            }, [logs, raceMetrics, progress, streak]);
+
+            const getRanges = (type) => {
+                if (type === 'bf') return { min: 5, max: 35, ranges: [{ min: 5, max: 13, label: '运动员', color: 'bg-emerald-500' }, { min: 13, max: 18, label: '健身', color: 'bg-emerald-600' }, { min: 18, max: 25, label: '标准', color: 'bg-indigo-500' }, { min: 25, max: 35, label: '肥胖', color: 'bg-rose-500' }] };
+                return { min: 16, max: 26, ranges: [{ min: 16, max: 18, label: '基础', color: 'bg-rose-500' }, { min: 18, max: 20, label: '普通', color: 'bg-orange-500' }, { min: 20, max: 22, label: '训练痕迹', color: 'bg-yellow-500' }, { min: 22, max: 24, label: '强壮', color: 'bg-emerald-500' }, { min: 24, max: 26, label: '极限', color: 'bg-purple-500' }] };
+            };
+            const bfConfig = getRanges('bf');
+            const ffmiConfig = getRanges('ffmi');
+
+            // Actions - FIXED
+            const openEditModal = (log) => { 
+                setFormData({ 
+                    date: log.date, 
+                    weight: log.weight, 
+                    fat: log.fat || '', 
+                    muscle: log.muscle || '' 
+                }); 
+                setEditingLogId(log.id); 
+                setIsEntryOpen(true); 
+            };
+
+            const handleSaveLog = (e) => { 
+                e.preventDefault(); 
+                if (!formData.weight) return; 
+                const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; 
+                const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; 
+                setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); 
+                setIsEntryOpen(false); 
+                setEditingLogId(null); 
+                setFormData({date:new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:''}); 
+            };
+            
+            // 核心修复：删除逻辑改为弹窗触发
+            const requestDelete = (id) => { setDeleteId(id); };
+            const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
+
+            const handleReset = () => { if (window.confirm("⚠️ 彻底清除所有历史并重置？")) { localStorage.removeItem('pro_fit_profile_v3_7'); localStorage.removeItem('pro_fit_logs_v3_7'); setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); setLogs([]); setOnboardingStep(0); setIsSettingsOpen(false); } };
+
+            useEffect(() => { localStorage.setItem('pro_fit_profile_v3_7', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v3_7', JSON.stringify(logs)); }, [profile, logs]);
+            useEffect(() => { if (onboardingStep === 5) { setTimeout(() => { if (profile.startWeight) setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); setProfile(p => ({...p, initialized: true})); }, 2000); } }, [onboardingStep]);
 
             if (!profile.initialized) {
                 return (
-                    <div className="max-w-md mx-auto min-h-screen bg-slate-900 flex flex-col p-8 justify-center text-white">
-                        <div className="mb-12 text-center animate-in fade-in zoom-in duration-500">
-                            <div className="w-24 h-24 bg-gradient-to-tr from-rose-600 to-orange-600 rounded-[2rem] flex items-center justify-center text-white mx-auto mb-8 shadow-[0_0_40px_rgba(225,29,72,0.4)]">
-                                <Icon name="fitness_center" size={48} />
-                            </div>
-                            <h1 className="text-4xl font-black tracking-tighter">准备好重塑了吗？</h1>
-                            <p className="text-slate-400 mt-4 font-bold leading-relaxed tracking-wide">减脂是场修行<br/>唯有打碎旧我，方能重塑新生</p>
+                    <div className="max-w-md mx-auto min-h-screen bg-[#0F172A] flex flex-col text-white justify-center p-8 overflow-hidden">
+                        <div className="w-full h-1 bg-slate-800 absolute top-0 left-0"><div className="h-full bg-indigo-500 progress-bar" style={{ width: `${(onboardingStep / 5) * 100}%` }}></div></div>
+                        <div className="flex-1 flex flex-col justify-center">
+                            {onboardingStep === 0 && <div className="text-center slide-up"><div className="mb-10"><SpikeLogo size={96} className="mx-auto" /></div><h1 className="text-5xl font-black mb-4 tracking-tighter">RESHAPE</h1><p className="text-slate-400 text-lg">意志与肉体的重构</p><button onClick={() => setOnboardingStep(1)} className="mt-16 w-full py-5 bg-white text-slate-950 font-black rounded-full text-xl shadow-2xl transition-transform active:scale-95">开始锻造</button></div>}
+                            
+                            {onboardingStep === 1 && <div className="w-full slide-up">
+                                <h2 className="text-3xl font-black mb-8">基础档案</h2>
+                                <div className="space-y-8">
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">代号 / 昵称</label><input autoFocus className="w-full bg-transparent border-b-2 border-slate-700 py-3 text-3xl font-black outline-none focus:border-indigo-500 text-white placeholder-slate-700" value={profile.name} onChange={e=>setProfile({...profile, name:e.target.value})} placeholder="Name..."/></div>
+                                    <div>
+                                        <label className="text-xs text-indigo-400 font-bold uppercase block mb-4">生理性别</label>
+                                        <div className="flex gap-4">
+                                            <button onClick={()=>setProfile({...profile, gender:'male'})} className={`flex-1 p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${profile.gender==='male'?'border-indigo-500 bg-indigo-500/20 text-white':'border-slate-800 text-slate-500'}`}><Icon name="male" size={32}/><span className="font-bold">男</span></button>
+                                            <button onClick={()=>setProfile({...profile, gender:'female'})} className={`flex-1 p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${profile.gender==='female'?'border-rose-500 bg-rose-500/20 text-white':'border-slate-800 text-slate-500'}`}><Icon name="female" size={32}/><span className="font-bold">女</span></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={()=>setOnboardingStep(2)} disabled={!profile.name || !profile.gender} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                            </div>}
+
+                            {onboardingStep === 2 && <div className="w-full slide-up">
+                                <h2 className="text-3xl font-black mb-8">身体参数</h2>
+                                <div className="space-y-8"><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">身高 (CM)</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.height} onChange={e=>setProfile({...profile, height:e.target.value})}/></div><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">年龄</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.age} onChange={e=>setProfile({...profile, age:e.target.value})}/></div></div>
+                                <button onClick={()=>setOnboardingStep(3)} disabled={!profile.height || !profile.age} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                            </div>}
+
+                            {onboardingStep === 3 && <div className="w-full slide-up">
+                                <h2 className="text-3xl font-black mb-8">当前现状</h2>
+                                <div className="space-y-6"><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">当前体重 (KG)</label><input type="number" step="0.1" autoFocus className="w-full bg-slate-900 p-5 rounded-2xl text-5xl font-black outline-none" value={profile.startWeight} onChange={e=>setProfile({...profile, startWeight:e.target.value})}/></div><div className="grid grid-cols-2 gap-4"><input type="number" step="0.1" className="bg-slate-900 p-4 rounded-xl font-bold outline-none text-white placeholder-slate-700" placeholder="体脂KG (选填)" value={profile.startFat} onChange={e=>setProfile({...profile, startFat:e.target.value})}/><input type="number" step="0.1" className="bg-slate-900 p-4 rounded-xl font-bold outline-none text-white placeholder-slate-700" placeholder="肌肉KG (选填)" value={profile.startMuscle} onChange={e=>setProfile({...profile, startMuscle:e.target.value})}/></div></div>
+                                <button onClick={()=>setOnboardingStep(4)} disabled={!profile.startWeight} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                            </div>}
+
+                            {onboardingStep === 4 && <div className="w-full slide-up">
+                                <h2 className="text-3xl font-black mb-8">定下目标</h2>
+                                <div className="space-y-6">
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体重 (KG)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.targetWeight} onChange={e=>handleGoalChange(weeklyRate, e.target.value)}/></div>
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体脂 (%)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-2xl font-bold outline-none" value={profile.targetFatRate} onChange={e=>setProfile({...profile, targetFatRate:e.target.value})}/></div>
+                                    <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700"><div className="flex justify-between items-center mb-4"><label className="text-xs font-bold text-slate-300 uppercase flex items-center gap-1"><Icon name="speed" size={16} className="text-emerald-400"/> 每周减重配速</label><span className="text-emerald-400 font-black text-lg">{weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span></span></div><input type="range" min="0.1" max="1.5" step="0.1" value={weeklyRate} onChange={e=>handleGoalChange(e.target.value, profile.targetWeight)} className="w-full mb-2"/><div className="flex justify-between text-[10px] font-bold text-slate-500 mb-6"><span>温和</span><span className={weeklyRate>=0.5&&weeklyRate<=1.0?"text-emerald-400":""}>{weeklyRate>=0.5&&weeklyRate<=1.0?"✅ 黄金区间":"推荐"}</span><span>极速</span></div><div className="flex items-center gap-3 bg-slate-900 p-4 rounded-xl"><div className="p-2 bg-slate-800 rounded-lg text-slate-400"><Icon name="event" size={20}/></div><div><p className="text-[10px] text-slate-500 uppercase font-bold mb-0.5">预计达成日期</p><p className="text-white font-bold text-lg">{profile.targetDate||'--'}</p></div></div></div>
+                                </div>
+                                <button onClick={()=>setOnboardingStep(5)} disabled={!profile.targetWeight || !profile.targetDate} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">生成计划</button>
+                            </div>}
+
+                            {onboardingStep === 5 && <div className="text-center animate-pulse"><SpikeLogo size={80} className="mx-auto mb-8"/><p className="text-xl font-bold tracking-widest uppercase">重组身体机能...</p></div>}
                         </div>
-                        <form onSubmit={(e) => { e.preventDefault(); setProfile({ ...profile, initialized: true }); }} className="space-y-5 bg-slate-800 p-6 rounded-[2.5rem] shadow-2xl border border-slate-700">
-                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 ml-2 uppercase">代号 / 姓名</label>
-                                    <input required className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-slate-200 placeholder-slate-600" placeholder="你的代号" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 ml-2 uppercase text-orange-500">截止日期</label>
-                                    <input type="date" required className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-orange-500" value={profile.targetDate} onChange={e => setProfile({...profile, targetDate: e.target.value})} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input type="number" required placeholder="身高 CM" className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-slate-200" value={profile.height} onChange={e => setProfile({...profile, height: e.target.value})} />
-                                <input type="number" required placeholder="年龄" className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-slate-200" value={profile.age} onChange={e => setProfile({...profile, age: e.target.value})} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <input type="number" step="0.1" required placeholder="当前体重" className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-slate-200" value={profile.startWeight} onChange={e => setProfile({...profile, startWeight: e.target.value})} />
-                                <input type="number" step="0.1" required placeholder="目标体重" className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-orange-500" value={profile.targetWeight} onChange={e => setProfile({...profile, targetWeight: e.target.value})} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <select className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-slate-200" value={profile.gender} onChange={e => setProfile({...profile, gender: e.target.value})}>
-                                    <option value="male">男</option>
-                                    <option value="female">女</option>
-                                </select>
-                                <input type="number" step="0.1" required placeholder="目标体脂 %" className="w-full bg-slate-900 border-none rounded-2xl p-4 font-bold text-emerald-500" value={profile.targetFatRate} onChange={e => setProfile({...profile, targetFatRate: e.target.value})} />
-                            </div>
-                            <button type="submit" className="w-full py-5 bg-gradient-to-r from-rose-600 to-orange-600 text-white rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform">
-                                开始铸造 <Icon name="bolt" />
-                            </button>
-                        </form>
                     </div>
                 );
             }
 
             return (
-                <div className="max-w-md mx-auto bg-[#F1F5F9] min-h-screen font-sans text-slate-900 pb-32 overflow-x-hidden">
+                <div className="max-w-md mx-auto bg-[#F8FAFC] min-h-screen pb-32 overflow-x-hidden relative">
                     <header className="relative bg-[#0F172A] pb-24 rounded-b-[3.5rem] overflow-hidden shadow-2xl">
-                        <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[150%] bg-gradient-to-br from-rose-600/20 via-orange-600/10 to-transparent blur-3xl pointer-events-none animate-pulse"></div>
-                        <div className="relative z-10 px-8 pt-14">
-                            <div className="flex justify-between items-center mb-8">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10 text-white font-black shadow-inner">
-                                        {profile.name[0]}
-                                    </div>
-                                    <div>
-                                        <div className={`flex items-center gap-1.5 ${greeting.color} text-xs font-bold mb-0.5`}>
-                                            <Icon name={greeting.icon} size={16} /> {greeting.text}
-                                        </div>
-                                        <h2 className="text-white font-bold text-xl tracking-tight">{profile.name}</h2>
-                                    </div>
-                                </div>
-                                <button onClick={() => { setTempProfile(profile); setIsSettingsOpen(true); }} className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white/80 hover:bg-white/10">
-                                    <Icon name="settings" size={18} />
-                                </button>
-                            </div>
+                        <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[150%] bg-gradient-to-br from-indigo-900/20 via-slate-900 to-transparent blur-3xl pointer-events-none animate-pulse"></div>
+                        <div className="relative z-10 px-8 pt-14 text-white">
+                            <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-4"><SpikeLogo size={48} /><div><div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RES.HAPE</div><h1 className="text-2xl font-black">{profile.name}</h1></div></div><button onClick={()=>setIsSettingsOpen(true)} className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:bg-white/20 transition-colors"><Icon name="settings" size={20}/></button></div>
                             <div className="flex justify-between items-end">
-                                <div>
-                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">当前状态</p>
-                                    <div className="flex items-baseline gap-1.5 text-white">
-                                        <span className="text-7xl font-black tracking-tighter" style={{ textShadow: '0 10px 30px rgba(225, 29, 72, 0.3)' }}>{currentStats?.weight || profile.startWeight}</span>
-                                        <span className="text-lg font-bold opacity-40">KG</span>
-                                    </div>
-                                    {logs.length > 2 && <MiniChart data={logs} />}
-                                </div>
-                                <div className="flex flex-col items-end gap-3 mb-2">
-                                    {streak > 1 && (
-                                        <div className="flex items-center gap-1.5 bg-orange-500/20 px-3 py-1 rounded-full border border-orange-500/30 backdrop-blur-sm">
-                                            <Icon name="local_fire_department" size={12} className="text-orange-400" />
-                                            <span className="text-[10px] font-black text-orange-400 uppercase">{streak} 天连击</span>
-                                        </div>
-                                    )}
-                                    <div className="text-right">
-                                        <p className="text-slate-400 text-[10px] font-black uppercase mb-1">距离目标</p>
-                                        <p className="text-2xl font-black text-white">{(currentStats?.weight ? currentStats.weight - profile.targetWeight : 0).toFixed(1)}</p>
-                                    </div>
-                                </div>
+                                <div><p className="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest">当前状态</p><div className="flex items-baseline gap-1.5"><span className="text-7xl font-black tracking-tighter" style={{ textShadow: '0 10px 30px rgba(99, 102, 241, 0.4)' }}>{currentStats?.weight || '--'}</span><span className="text-lg font-bold opacity-40">KG</span></div>{logs.length > 2 && <MiniChart data={logs} />}</div>
+                                <div className="text-right mb-2">{streak > 1 && <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-500 text-[10px] font-black mb-3"><Icon name="bolt" size={12}/> {streak} DAY STREAK</div>}<p className="text-slate-400 text-[10px] font-black uppercase mb-1">距离目标</p><p className="text-3xl font-black text-white">{(currentStats?.weight ? currentStats.weight - profile.targetWeight : 0).toFixed(1)}</p></div>
                             </div>
                         </div>
                     </header>
 
                     <div className="px-6 -mt-16 relative z-20 space-y-5">
-                        <div className="bg-white/90 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] border border-white/50 flex gap-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
-                            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shrink-0 shadow-xl">
-                                <Icon name={coachMessage.icon} className={coachMessage.color} />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-slate-800 text-sm mb-1">{coachMessage.title}</h4>
-                                <p className="text-xs text-slate-500 leading-relaxed font-medium">{coachMessage.content}</p>
-                            </div>
+                        <div className="bg-white p-6 rounded-[2.5rem] card-shadow border border-white flex gap-4 items-start animate-in fade-in slide-in-from-bottom-6 duration-700">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center shrink-0 shadow-inner"><Icon name={coachMessage.icon} className={coachMessage.color}/></div>
+                            <div><h3 className="font-black text-sm mb-1 text-slate-800">{coachMessage.title}</h3><p className="text-xs text-slate-500 leading-relaxed font-medium">{coachMessage.content}</p></div>
                         </div>
 
-                        <div className="bg-[#1e293b] p-7 rounded-[3rem] shadow-2xl text-white relative overflow-hidden border border-slate-700">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-rose-600/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                            <div className="relative z-10">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="font-black text-base flex items-center gap-2 italic">
-                                        <Icon name="flag" size={18} className="text-rose-500" /> 重塑进度
-                                    </h3>
-                                    <div className="text-[10px] font-bold text-slate-400">剩余 {raceMetrics.daysLeft} 天</div>
-                                </div>
-                                <div className="relative pt-6 pb-2">
-                                    <div className="h-3 bg-slate-800 rounded-full w-full relative overflow-hidden border border-slate-700">
-                                        <div className="absolute top-0 bottom-0 bg-slate-600/30 transition-all duration-1000 z-10" style={{ width: `${raceMetrics.timeProgress}%` }} />
-                                        <div className={`absolute top-0 bottom-0 transition-all duration-1000 z-20 rounded-full ${raceMetrics.status === 'AHEAD' ? 'bg-gradient-to-r from-emerald-500 to-emerald-300' : 'bg-gradient-to-r from-rose-600 to-orange-500'}`} style={{ width: `${raceMetrics.weightProgress}%` }} />
-                                    </div>
-                                    <div className="absolute top-0 transition-all duration-1000 z-30" style={{ left: `${raceMetrics.weightProgress}%`, transform: 'translateX(-50%)' }}>
-                                        <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${raceMetrics.status === 'AHEAD' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>You</div>
-                                        <div className={`w-0.5 h-4 mx-auto ${raceMetrics.status === 'AHEAD' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
-                                    </div>
-                                    <div className="absolute top-3 transition-all duration-1000 z-10 opacity-60" style={{ left: `${raceMetrics.timeProgress}%`, transform: 'translateX(-50%)' }}>
-                                        <div className="w-0.5 h-6 bg-slate-400 mx-auto border-dashed border-l border-slate-900"></div>
-                                        <div className="text-[9px] text-slate-400 font-bold uppercase mt-1">Time</div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="bg-[#0F172A] p-7 rounded-[3rem] shadow-xl text-white relative overflow-hidden border border-slate-800">
+                             <div className="flex justify-between items-center mb-5"><h3 className="font-black text-base flex items-center gap-2 italic"><Icon name="flag" className="text-indigo-400" size={18}/> 目标竞速</h3><span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">剩余 {raceMetrics.daysLeft} 天</span></div>
+                             <div className="relative pt-6 pb-2"><div className="h-2.5 bg-slate-800 rounded-full w-full relative overflow-hidden"><div className="absolute top-0 bottom-0 bg-slate-600 transition-all duration-1000" style={{width: `${raceMetrics.timeProgress}%`}}/><div className={`absolute top-0 bottom-0 transition-all duration-1000 z-10 rounded-full ${raceMetrics.status==='AHEAD'?'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]':'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]'}`} style={{width: `${raceMetrics.weightProgress}%`}}/></div><div className="absolute top-0 transition-all duration-1000 z-20" style={{left: `${raceMetrics.weightProgress}%`, transform: 'translateX(-50%)'}}><div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase text-white shadow-lg ${raceMetrics.status==='AHEAD'?'bg-emerald-500':'bg-rose-500'}`}>YOU</div><div className={`w-0.5 h-3 mx-auto ${raceMetrics.status==='AHEAD'?'bg-emerald-500':'bg-rose-500'}`}></div></div><div className="absolute top-3 transition-all duration-1000 opacity-40" style={{left: `${raceMetrics.timeProgress}%`, transform: 'translateX(-50%)'}}><div className="w-0.5 h-5 bg-slate-400 mx-auto border-dashed border-l border-slate-900"></div><div className="text-[9px] text-slate-400 font-bold mt-1 tracking-tighter">TIME</div></div></div>
                         </div>
 
-                        <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
-                             <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 mb-8">
-                                <Icon name="straighten" className="text-indigo-600" size={20} /> 核心数据监控
-                             </h3>
-                             <div className="space-y-8">
-                                <div>
-                                    <div className="flex justify-between items-end mb-2">
-                                        <span className="text-xs font-bold text-slate-500 uppercase">体脂率 (BF%)</span>
-                                        <span className="text-xl font-black text-slate-800">{currentStats?.fatRate || '--'}%</span>
-                                    </div>
-                                    <div className="h-3 w-full bg-slate-100 rounded-full relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-sky-400 via-emerald-400 to-rose-400 opacity-80" />
-                                        <div className="absolute top-0 bottom-0 w-1 bg-white shadow-xl z-10" style={{ left: `${Math.min(Math.max(((currentStats?.fatRate || 0) - 5) / 30 * 100, 0), 100)}%` }} />
+                        <div className="bg-white p-8 rounded-[3rem] card-shadow border border-slate-100">
+                            {activeTab === 'home' && (
+                                <div className="space-y-6 fade-in">
+                                    <h3 className="text-lg font-black text-slate-800 flex gap-2 items-center mb-8"><Icon name="activity" className="text-indigo-600" size={20}/> 核心监控</h3>
+                                    <Gauge title="体脂率 (BF%)" value={currentStats?.fatRate} unit="%" ranges={bfConfig.ranges} minVal={5} maxVal={35} dateLabel={currentStats?.dateLabel}/>
+                                    <Gauge title="FFMI 肌肉指数" value={currentStats?.ffmi} unit="" ranges={ffmiConfig.ranges} minVal={16} maxVal={26} dateLabel={currentStats?.dateLabel}/>
+                                </div>
+                            )}
+                            {activeTab === 'trends' && (
+                                <div className="fade-in space-y-6">
+                                    <div className="flex justify-between items-center"><h3 className="text-lg font-black text-slate-800">趋势分析</h3><div className="flex bg-slate-100 rounded-full p-1"><button onClick={()=>setTrendViewMode('daily')} className={`px-4 py-1.5 text-xs font-black rounded-full transition-all ${trendViewMode==='daily'?'bg-white shadow-sm text-indigo-600':'text-slate-400'}`}>日线</button><button onClick={()=>setTrendViewMode('weekly')} className={`px-4 py-1.5 text-xs font-black rounded-full transition-all ${trendViewMode==='weekly'?'bg-white shadow-sm text-indigo-600':'text-slate-400'}`}>周报</button></div></div>
+                                    {prediction ? (<div className={`p-5 rounded-[2rem] border ${prediction.rate>=80?'bg-emerald-50 border-emerald-100':'bg-rose-50 border-rose-100'}`}><div className="flex justify-between items-center mb-2"><span className="text-xs font-black text-slate-400 uppercase">达标预测</span><span className={`text-2xl font-black ${prediction.rate>=80?'text-emerald-600':'text-rose-600'}`}>{prediction.rate}%</span></div><p className="text-xs text-slate-600 leading-relaxed font-medium">{prediction.advice}</p></div>) : (<div className="p-5 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200 text-center"><p className="text-slate-400 text-xs font-bold">至少需要 2 周数据以解锁预测分析</p></div>)}
+                                    {logs.length > 1 ? (trendViewMode === 'daily' ? <TrendChartDaily data={trendData}/> : <TrendChartWeekly data={weeklyData}/>) : <div className="h-48 flex items-center justify-center text-slate-300 font-bold italic">数据蓄能中...</div>}
+                                </div>
+                            )}
+                            {activeTab === 'history' && (
+                                <div className="fade-in">
+                                    <div className="flex justify-between items-center mb-6"><h3 className="text-lg font-black text-slate-800">打卡历史</h3><span className="text-[10px] font-black bg-slate-100 text-slate-500 px-2 py-1 rounded uppercase tracking-widest">{logs.length} LOGS</span></div>
+                                    <div className="space-y-4 pb-20">
+                                        {logs.map(log => (
+                                            <div key={log.id} className="flex justify-between items-center p-5 rounded-[2rem] bg-white border border-slate-100 card-shadow">
+                                                <div className="flex items-center gap-4"><div className="w-12 h-12 rounded-2xl bg-slate-50 flex flex-col items-center justify-center text-slate-400 font-bold leading-tight"><span className="text-[10px] uppercase">{new Date(log.date).toLocaleString('default',{month:'short'})}</span><span className="text-lg text-slate-800">{new Date(log.date).getDate()}</span></div><div><div className="text-xl font-black text-slate-800">{log.weight}<span className="text-xs ml-1 text-slate-400">KG</span></div><div className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase tracking-tighter">Fat: {log.fat||'-'} / Mus: {log.muscle||'-'}</div></div></div>
+                                                <div className="flex gap-2"><button onClick={()=>openEditModal(log)} className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"><Icon name="edit" size={18}/></button><button onClick={()=>requestDelete(log.id)} className="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"><Icon name="delete" size={18}/></button></div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                                <div>
-                                    <div className="flex justify-between items-end mb-2">
-                                        <span className="text-xs font-bold text-slate-500 uppercase">FFMI 肌肉指数</span>
-                                        <span className="text-xl font-black text-indigo-600">{currentStats?.ffmi || '--'}</span>
-                                    </div>
-                                    <div className="h-3 w-full bg-slate-100 rounded-full relative overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-rose-400 via-emerald-400 to-indigo-600 opacity-80" />
-                                        <div className="absolute top-0 bottom-0 w-1 bg-white shadow-xl z-10" style={{ left: `${Math.min(Math.max(((currentStats?.ffmi || 0) - 16) / 14 * 100, 0), 100)}%` }} />
-                                    </div>
-                                </div>
-                             </div>
+                            )}
                         </div>
                     </div>
 
-                    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-50">
-                        <div className="bg-slate-900/90 backdrop-blur-2xl rounded-full p-2.5 flex justify-around items-center shadow-2xl shadow-slate-900/40 border border-white/10">
-                            <button onClick={() => setActiveTab('home')} className={`p-4 rounded-full transition-all duration-300 ${activeTab === 'home' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
-                                <Icon name="dashboard" size={22} />
-                            </button>
-                            <button onClick={() => { setEditingLogId(null); setFormData({ date: new Date().toISOString().split('T')[0], weight: '', fat: '', muscle: '' }); setIsEntryOpen(true); }} className="w-14 h-14 bg-gradient-to-tr from-rose-600 to-orange-600 text-white rounded-full flex items-center justify-center shadow-xl shadow-rose-600/40 active:scale-95 transition-transform -mt-8 border-[6px] border-[#F1F5F9]">
-                                <Icon name="add" size={28} />
-                            </button>
-                            <button onClick={() => setActiveTab('history')} className={`p-4 rounded-full transition-all duration-300 ${activeTab === 'history' ? 'bg-slate-800 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}>
-                                <Icon name="history" size={22} />
-                            </button>
+                    <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-50">
+                        <div className="glass-nav rounded-full p-2.5 flex justify-around items-center shadow-2xl nav-shadow border border-white/10">
+                            <button onClick={()=>setActiveTab('home')} className={`p-4 rounded-full transition-all duration-300 ${activeTab==='home'?'bg-indigo-600 text-white shadow-lg':'text-slate-400 hover:text-white'}`}><Icon name="dashboard" size={24}/></button>
+                            <button onClick={()=>{setEditingLogId(null);setFormData({date:new Date().toISOString().split('T')[0],weight:'',fat:'',muscle:''});setIsEntryOpen(true)}} className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-violet-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-95 transition-transform"><Icon name="add" size={32}/></button>
+                            <button onClick={()=>setActiveTab('trends')} className={`p-4 rounded-full transition-all duration-300 ${activeTab==='trends'?'bg-indigo-600 text-white shadow-lg':'text-slate-400 hover:text-white'}`}><Icon name="show_chart" size={24}/></button>
+                            <button onClick={()=>setActiveTab('history')} className={`p-4 rounded-full transition-all duration-300 ${activeTab==='history'?'bg-indigo-600 text-white shadow-lg':'text-slate-400 hover:text-white'}`}><Icon name="history" size={24}/></button>
                         </div>
                     </nav>
 
+                    {/* Modals */}
                     {isEntryOpen && (
                         <div className="fixed inset-0 z-[60] flex items-end">
-                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={closeEntryModal}></div>
+                            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onClick={() => setIsEntryOpen(false)}></div>
                             <div className="relative w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-300">
                                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
-                                <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2">
-                                    <Icon name={editingLogId ? "edit" : "fitness_center"} className="text-indigo-600"/> {editingLogId ? '修正记录' : '重塑打卡'}
-                                </h2>
-                                <form onSubmit={handleSaveLog} className="space-y-5">
+                                <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2"><Icon name="fitness_center" className="text-indigo-600"/> {editingLogId?'修正数据':'记录今日'}</h2>
+                                <form onSubmit={handleSaveLog} className="space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <input type="date" className="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold text-slate-600" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-                                        <div className="relative">
-                                            <input type="number" step="0.1" required placeholder="0.0" className="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold text-indigo-600 text-xl" value={formData.weight} onChange={e => setFormData({...formData, weight: e.target.value})} />
-                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">KG</span>
-                                        </div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">日期</label><input type="date" className="w-full bg-transparent font-bold" value={formData.date} onChange={e=>setFormData({...formData, date: e.target.value})} /></div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">体重 (KG)</label><input type="number" step="0.1" required autoFocus className="w-full bg-transparent font-black text-2xl text-indigo-600" placeholder="0.0" value={formData.weight} onChange={e=>setFormData({...formData, weight: e.target.value})} /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="relative">
-                                            <label className="absolute -top-2 left-2 text-[9px] font-black bg-white px-1 text-slate-400 uppercase">体脂</label>
-                                            <input type="number" step="0.1" placeholder="--" className="w-full bg-white border-2 border-slate-100 rounded-2xl p-4 font-bold" value={formData.fat} onChange={e => setFormData({...formData, fat: e.target.value})} />
-                                        </div>
-                                        <div className="relative">
-                                            <label className="absolute -top-2 left-2 text-[9px] font-black bg-white px-1 text-slate-400 uppercase">肌肉</label>
-                                            <input type="number" step="0.1" placeholder="--" className="w-full bg-white border-2 border-slate-100 rounded-2xl p-4 font-bold" value={formData.muscle} onChange={e => setFormData({...formData, muscle: e.target.value})} />
-                                        </div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">脂肪量 (KG)</label><input type="number" step="0.1" className="w-full bg-transparent font-bold text-xl" placeholder="--" value={formData.fat} onChange={e=>setFormData({...formData, fat: e.target.value})} /></div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">肌肉量 (KG)</label><input type="number" step="0.1" className="w-full bg-transparent font-bold text-xl" placeholder="--" value={formData.muscle} onChange={e=>setFormData({...formData, muscle: e.target.value})} /></div>
                                     </div>
-                                    <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform mt-4">
-                                        确认记录
-                                    </button>
+                                    <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform">确认记录</button>
                                 </form>
                             </div>
                         </div>
@@ -438,56 +480,43 @@
 
                     {isSettingsOpen && (
                         <div className="fixed inset-0 z-[60] flex items-end">
-                            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsSettingsOpen(false)}></div>
-                            <div className="relative w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-300">
-                                <h2 className="text-2xl font-black text-slate-800 mb-6">计划调整</h2>
+                            <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onClick={() => setIsSettingsOpen(false)}></div>
+                            <div className="relative w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto no-scrollbar">
+                                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
+                                <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2"><Icon name="tune" className="text-indigo-600"/> 计划调整</h2>
                                 <div className="space-y-4">
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <p className="text-xs font-bold text-slate-400 mb-2 uppercase">重设目标</p>
+                                    <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
+                                        <p className="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">重设核心目标</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <input type="number" step="0.1" className="bg-white p-3 rounded-xl font-bold text-indigo-600 border-none" value={tempProfile.targetWeight} onChange={e => setTempProfile({...tempProfile, targetWeight: e.target.value})} />
-                                            <input type="date" className="bg-white p-3 rounded-xl font-bold text-slate-600 border-none" value={tempProfile.targetDate} onChange={e => setTempProfile({...tempProfile, targetDate: e.target.value})} />
+                                            <div className="bg-white p-3 rounded-xl shadow-sm"><input type="number" step="0.1" className="w-full font-black text-indigo-600" value={tempProfile.targetWeight} onChange={e=>handleGoalChange(weeklyRate, e.target.value)} /></div>
+                                            <div className="bg-white p-3 rounded-xl shadow-sm"><input type="date" className="w-full font-bold text-slate-500" value={tempProfile.targetDate} onChange={e=>setTempProfile({...tempProfile, targetDate:e.target.value})} /></div>
                                         </div>
                                     </div>
-                                    <button onClick={() => { setProfile({...tempProfile}); setIsSettingsOpen(false); }} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold">更新计划</button>
-                                    <button onClick={handleReset} className="w-full py-4 text-rose-500 font-bold bg-rose-50 rounded-xl flex items-center justify-center gap-2">
-                                        <Icon name="delete_forever" size={18} /> 摧毁所有记录重来
-                                    </button>
+                                    
+                                    <div className="p-5 bg-slate-900 rounded-3xl border border-slate-800 text-white">
+                                        <div className="flex justify-between items-center mb-4"><label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><Icon name="speed" size={16} className="text-emerald-400"/> 每周减重配速</label><span className="text-emerald-400 font-black text-lg">{weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span></span></div>
+                                        <input type="range" min="0.1" max="1.5" step="0.1" value={weeklyRate} onChange={e=>handleGoalChange(e.target.value, tempProfile.targetWeight)} className="w-full mb-2"/>
+                                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-2"><span>温和</span><span className={weeklyRate>=0.5&&weeklyRate<=1.0?"text-emerald-400":""}>{weeklyRate>=0.5&&weeklyRate<=1.0?"✅ 黄金区间":"推荐"}</span><span>极速</span></div>
+                                    </div>
+
+                                    <button onClick={()=>{setProfile({...tempProfile});setIsSettingsOpen(false)}} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg">保存更改</button>
+                                    <button onClick={handleReset} className="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold border border-rose-100 flex items-center justify-center gap-2 mt-4"><Icon name="delete_forever" size={18}/> 彻底清除所有记录</button>
                                 </div>
                             </div>
                         </div>
                     )}
-
-                    {activeTab === 'history' && (
-                        <div className="px-6 pt-6 animate-in fade-in slide-in-from-bottom-2">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-2xl font-black text-slate-800">重塑足迹</h3>
-                                <span className="text-[10px] font-black bg-slate-200 text-slate-500 px-2 py-1 rounded uppercase">{logs.length} LOGS</span>
-                            </div>
-                            <div className="space-y-4 pb-20">
-                                {logs.length > 0 ? logs.map((log) => (
-                                    <div key={log.id} className="bg-white p-5 rounded-[2rem] shadow-sm flex justify-between items-center border border-slate-100">
-                                        <div className="flex gap-4 items-center">
-                                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex flex-col items-center justify-center text-slate-400 font-bold leading-tight">
-                                                <span className="text-[10px] uppercase">{new Date(log.date).toLocaleString('default', { month: 'short' })}</span>
-                                                <span className="text-lg text-slate-800">{new Date(log.date).getDate()}</span>
-                                            </div>
-                                            <div>
-                                                <p className="text-xl font-black text-slate-800">{log.weight}<span className="text-xs text-slate-400 ml-1">KG</span></p>
-                                                <div className="flex gap-2 text-[10px] text-slate-400 font-bold uppercase mt-0.5">
-                                                    {log.fat && <span>Fat: {log.fat}</span>}
-                                                    {log.muscle && <span>Mus: {log.muscle}</span>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => openEditModal(log)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"><Icon name="edit" size={16}/></button>
-                                            <button onClick={() => deleteLog(log.id)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"><Icon name="delete" size={16}/></button>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <div className="text-center py-10 opacity-50">暂无记录</div>
-                                )}
+                    
+                    {/* Delete Confirmation Modal */}
+                    {deleteId && (
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/90 backdrop-blur-sm animate-in fade-in">
+                            <div className="bg-white p-6 rounded-3xl w-4/5 max-w-sm shadow-2xl scale-in">
+                                <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500"><Icon name="warning" size={32}/></div>
+                                <h3 className="text-center font-black text-xl text-slate-800 mb-2">确定删除?</h3>
+                                <p className="text-center text-sm text-slate-500 mb-6">这条记录将永久消失，无法恢复。</p>
+                                <div className="flex gap-3">
+                                    <button onClick={()=>setDeleteId(null)} className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl">取消</button>
+                                    <button onClick={confirmDelete} className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-500/30">删除</button>
+                                </div>
                             </div>
                         </div>
                     )}
