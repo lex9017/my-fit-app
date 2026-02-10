@@ -160,11 +160,11 @@
         // --- 3. 主程序 ---
         const App = () => {
             const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_profile_v4_0');
+                const saved = localStorage.getItem('pro_fit_profile_v4_2');
                 return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
             });
             const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_logs_v4_0');
+                const saved = localStorage.getItem('pro_fit_logs_v4_2');
                 return saved ? JSON.parse(saved) : [];
             });
 
@@ -175,46 +175,48 @@
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [editingLogId, setEditingLogId] = useState(null);
             
+            // Delete & Reset state
             const [deleteId, setDeleteId] = useState(null);
+            const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false); // 新增：重置确认弹窗状态
+
             const [trendViewMode, setTrendViewMode] = useState('daily');
             const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], weight: '', muscle: '', fat: '' });
-            const [tempProfile, setTempProfile] = useState(profile); // 临时状态，用于 Settings
+            const [tempProfile, setTempProfile] = useState(profile);
 
-            // --- 核心工具函数：计算日期 ---
-            const calculateDateFromRate = (rate, currentW, targetW) => {
-                const start = parseFloat(currentW);
-                const target = parseFloat(targetW);
-                const r = parseFloat(rate);
-                
-                if (!start || !target || !r || r === 0) return '--';
-                
-                const diff = Math.abs(start - target);
-                const weeks = diff / r;
-                const days = Math.ceil(weeks * 7);
-                
-                const d = new Date();
-                d.setDate(d.getDate() + days);
+            // Calc (Unchanged logic)
+            const calculateTargetDate = (rate, targetW) => {
+                const start = parseFloat(profile.startWeight), target = parseFloat(targetW), r = parseFloat(rate);
+                if (!start || !target || !r) return null;
+                const days = Math.ceil(Math.abs(start - target) / r * 7);
+                const d = new Date(); d.setDate(d.getDate() + days);
                 return d.toISOString().split('T')[0];
             };
+            
+            const calculateDateFromRate = (rate, currentW, targetW) => {
+                 const start = parseFloat(currentW);
+                 const target = parseFloat(targetW);
+                 const r = parseFloat(rate);
+                 if (!start || !target || !r || r === 0) return '--';
+                 const diff = Math.abs(start - target);
+                 const weeks = diff / r;
+                 const days = Math.ceil(weeks * 7);
+                 const d = new Date();
+                 d.setDate(d.getDate() + days);
+                 return d.toISOString().split('T')[0];
+            };
 
-            // --- 建档时的 Handler ---
             const handleOnboardingGoalChange = (newRate, newTargetWeight) => {
                 setWeeklyRate(newRate);
-                // 建档时基于 startWeight 计算
                 const newDate = calculateDateFromRate(newRate, profile.startWeight, newTargetWeight);
                 setProfile(prev => ({ ...prev, targetWeight: newTargetWeight, targetDate: newDate }));
             };
 
-            // --- 设置时的 Handler (逻辑分离) ---
-            const handleSettingsGoalChange = (newRate, newTargetWeight) => {
-                setWeeklyRate(newRate);
-                // 设置时基于 startWeight 计算 (或者你可以改为基于 logs[0].weight 最新体重)
-                // 这里保持基于 startWeight 的一致性
-                const newDate = calculateDateFromRate(newRate, profile.startWeight, newTargetWeight);
-                setTempProfile(prev => ({ ...prev, targetWeight: newTargetWeight, targetDate: newDate }));
+            const handleSettingsGoalChange = (rate, w) => {
+                setWeeklyRate(rate);
+                const newDate = calculateDateFromRate(rate, profile.startWeight, w);
+                setTempProfile(prev => ({ ...prev, targetWeight: w, targetDate: newDate }));
             };
-            
-            // Metrics Logic
+
             const calculateMetrics = (weight, fatMass, muscleMass, prof) => {
                 if (!weight || !prof.height || !prof.age) return null;
                 const hM = prof.height / 100;
@@ -224,18 +226,6 @@
                 const ffmi = ((weight - (fatMass || 0)) / (hM * hM) + 6.1 * (1.8 - hM)).toFixed(1);
                 return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
             };
-            
-            // Charts Data
-            const calculateTrendData = () => {
-                if (logs.length === 0) return [];
-                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
-                return sorted.map((log, i, arr) => {
-                    let sum = 0, count = 0;
-                    for (let j = i; j >= 0 && j > i - 7; j--) { if (arr[j].weight) { sum += arr[j].weight; count++; } }
-                    return { date: log.date.split('-').slice(1).join('/'), rawWeight: log.weight, ma7Weight: count > 0 ? parseFloat((sum/count).toFixed(1)) : null };
-                });
-            };
-
             const calculateWeeklyData = () => {
                 if (logs.length === 0) return [];
                 const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -249,6 +239,15 @@
                 });
                 return Object.keys(groups).sort((a,b)=>a-b).map(k => ({ week: `W${parseInt(k)+1}`, avgWeight: parseFloat((groups[k].sum/groups[k].count).toFixed(1)) }))
                     .map((w, i, arr) => ({ ...w, change: i === 0 ? 0 : parseFloat((w.avgWeight - arr[i-1].avgWeight).toFixed(1)) }));
+            };
+            const calculateTrendData = () => {
+                if (logs.length === 0) return [];
+                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+                return sorted.map((log, i, arr) => {
+                    let sum = 0, count = 0;
+                    for (let j = i; j >= 0 && j > i - 7; j--) { if (arr[j].weight) { sum += arr[j].weight; count++; } }
+                    return { date: log.date.split('-').slice(1).join('/'), rawWeight: log.weight, ma7Weight: count > 0 ? parseFloat((sum/count).toFixed(1)) : null };
+                });
             };
 
             const trendData = useMemo(calculateTrendData, [logs]);
@@ -342,17 +341,27 @@
                 setIsEntryOpen(true); 
             };
             const handleSaveLog = (e) => { e.preventDefault(); if (!formData.weight) return; const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); setIsEntryOpen(false); setEditingLogId(null); setFormData({date:new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:''}); };
-            const requestDelete = (id) => { setDeleteId(id); };
+            const requestDelete = (id) => { setDeleteId(id); }; 
             const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
-            const handleReset = () => { if (window.confirm("⚠️ 彻底清除所有历史并重置？")) { localStorage.removeItem('pro_fit_profile_v4_0'); localStorage.removeItem('pro_fit_logs_v4_0'); setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); setLogs([]); setOnboardingStep(0); setIsSettingsOpen(false); } };
             
+            // 修复：使用独立弹窗代替 window.confirm
+            const confirmReset = () => { 
+                localStorage.removeItem('pro_fit_profile_v4_2'); 
+                localStorage.removeItem('pro_fit_logs_v4_2'); 
+                setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
+                setLogs([]); 
+                setOnboardingStep(0); 
+                setIsSettingsOpen(false); 
+                setIsResetConfirmOpen(false);
+            };
+
             // 打开设置时，初始化 tempProfile
             const openSettings = () => {
                 setTempProfile(profile);
                 setIsSettingsOpen(true);
             };
 
-            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_0', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_0', JSON.stringify(logs)); }, [profile, logs]);
+            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_2', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_2', JSON.stringify(logs)); }, [profile, logs]);
             useEffect(() => { if (onboardingStep === 5) { setTimeout(() => { if (profile.startWeight) setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); setProfile(p => ({...p, initialized: true})); }, 2000); } }, [onboardingStep]);
 
             if (!profile.initialized) {
@@ -389,7 +398,6 @@
                                 <button onClick={()=>setOnboardingStep(4)} disabled={!profile.startWeight} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
                             </div>}
 
-                            {/* Step 4: Fixed Logic for Onboarding */}
                             {onboardingStep === 4 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">定下目标</h2>
                                 <div className="space-y-6">
@@ -566,11 +574,26 @@
                                     </button>
                                     
                                     <button 
-                                        onClick={handleReset} 
+                                        onClick={() => setIsResetConfirmOpen(true)} 
                                         className="w-full py-4 text-rose-500 font-bold flex items-center justify-center gap-2 opacity-60 hover:opacity-100"
                                     >
                                         <Icon name="delete_forever" size={18}/> 重置所有数据
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Reset Confirmation Modal */}
+                    {isResetConfirmOpen && (
+                        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/90 backdrop-blur-sm animate-in fade-in">
+                            <div className="bg-white p-6 rounded-3xl w-4/5 max-w-sm shadow-2xl scale-in">
+                                <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500"><Icon name="warning" size={32}/></div>
+                                <h3 className="text-center font-black text-xl text-slate-800 mb-2">危险操作</h3>
+                                <p className="text-center text-sm text-slate-500 mb-6">确定要清空所有数据并重新开始吗？此操作不可恢复。</p>
+                                <div className="flex gap-3">
+                                    <button onClick={()=>setIsResetConfirmOpen(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl">取消</button>
+                                    <button onClick={confirmReset} className="flex-1 py-3 bg-rose-500 text-white font-bold rounded-xl shadow-lg shadow-rose-500/30">确认重置</button>
                                 </div>
                             </div>
                         </div>
