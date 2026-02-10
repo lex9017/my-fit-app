@@ -160,11 +160,11 @@
         // --- 3. 主程序 ---
         const App = () => {
             const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_profile_v3_7'); // New key to prevent conflicts
+                const saved = localStorage.getItem('pro_fit_profile_v4_0');
                 return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
             });
             const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_logs_v3_7'); // New key
+                const saved = localStorage.getItem('pro_fit_logs_v4_0');
                 return saved ? JSON.parse(saved) : [];
             });
 
@@ -175,26 +175,46 @@
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [editingLogId, setEditingLogId] = useState(null);
             
-            // Delete state
             const [deleteId, setDeleteId] = useState(null);
-
             const [trendViewMode, setTrendViewMode] = useState('daily');
             const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], weight: '', muscle: '', fat: '' });
-            const [tempProfile, setTempProfile] = useState(profile);
+            const [tempProfile, setTempProfile] = useState(profile); // 临时状态，用于 Settings
 
-            // Calc (Unchanged logic)
-            const calculateTargetDate = (rate, targetW) => {
-                const start = parseFloat(profile.startWeight), target = parseFloat(targetW), r = parseFloat(rate);
-                if (!start || !target || !r) return null;
-                const days = Math.ceil(Math.abs(start - target) / r * 7);
-                const d = new Date(); d.setDate(d.getDate() + days);
+            // --- 核心工具函数：计算日期 ---
+            const calculateDateFromRate = (rate, currentW, targetW) => {
+                const start = parseFloat(currentW);
+                const target = parseFloat(targetW);
+                const r = parseFloat(rate);
+                
+                if (!start || !target || !r || r === 0) return '--';
+                
+                const diff = Math.abs(start - target);
+                const weeks = diff / r;
+                const days = Math.ceil(weeks * 7);
+                
+                const d = new Date();
+                d.setDate(d.getDate() + days);
                 return d.toISOString().split('T')[0];
             };
-            const handleGoalChange = (rate, w) => {
-                const date = calculateTargetDate(rate, w);
-                setWeeklyRate(rate);
-                setProfile(prev => ({ ...prev, targetWeight: w, targetDate: date || prev.targetDate }));
+
+            // --- 建档时的 Handler ---
+            const handleOnboardingGoalChange = (newRate, newTargetWeight) => {
+                setWeeklyRate(newRate);
+                // 建档时基于 startWeight 计算
+                const newDate = calculateDateFromRate(newRate, profile.startWeight, newTargetWeight);
+                setProfile(prev => ({ ...prev, targetWeight: newTargetWeight, targetDate: newDate }));
             };
+
+            // --- 设置时的 Handler (逻辑分离) ---
+            const handleSettingsGoalChange = (newRate, newTargetWeight) => {
+                setWeeklyRate(newRate);
+                // 设置时基于 startWeight 计算 (或者你可以改为基于 logs[0].weight 最新体重)
+                // 这里保持基于 startWeight 的一致性
+                const newDate = calculateDateFromRate(newRate, profile.startWeight, newTargetWeight);
+                setTempProfile(prev => ({ ...prev, targetWeight: newTargetWeight, targetDate: newDate }));
+            };
+            
+            // Metrics Logic
             const calculateMetrics = (weight, fatMass, muscleMass, prof) => {
                 if (!weight || !prof.height || !prof.age) return null;
                 const hM = prof.height / 100;
@@ -204,6 +224,18 @@
                 const ffmi = ((weight - (fatMass || 0)) / (hM * hM) + 6.1 * (1.8 - hM)).toFixed(1);
                 return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
             };
+            
+            // Charts Data
+            const calculateTrendData = () => {
+                if (logs.length === 0) return [];
+                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
+                return sorted.map((log, i, arr) => {
+                    let sum = 0, count = 0;
+                    for (let j = i; j >= 0 && j > i - 7; j--) { if (arr[j].weight) { sum += arr[j].weight; count++; } }
+                    return { date: log.date.split('-').slice(1).join('/'), rawWeight: log.weight, ma7Weight: count > 0 ? parseFloat((sum/count).toFixed(1)) : null };
+                });
+            };
+
             const calculateWeeklyData = () => {
                 if (logs.length === 0) return [];
                 const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -218,20 +250,10 @@
                 return Object.keys(groups).sort((a,b)=>a-b).map(k => ({ week: `W${parseInt(k)+1}`, avgWeight: parseFloat((groups[k].sum/groups[k].count).toFixed(1)) }))
                     .map((w, i, arr) => ({ ...w, change: i === 0 ? 0 : parseFloat((w.avgWeight - arr[i-1].avgWeight).toFixed(1)) }));
             };
-            const calculateTrendData = () => {
-                if (logs.length === 0) return [];
-                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
-                return sorted.map((log, i, arr) => {
-                    let sum = 0, count = 0;
-                    for (let j = i; j >= 0 && j > i - 7; j--) { if (arr[j].weight) { sum += arr[j].weight; count++; } }
-                    return { date: log.date.split('-').slice(1).join('/'), rawWeight: log.weight, ma7Weight: count > 0 ? parseFloat((sum/count).toFixed(1)) : null };
-                });
-            };
 
             const trendData = useMemo(calculateTrendData, [logs]);
             const weeklyData = useMemo(calculateWeeklyData, [logs, profile]);
 
-            // Fix: Add null check for calculated metrics
             const currentStats = useMemo(() => {
                 if (logs.length === 0) return null;
                 const latest = logs[0];
@@ -241,8 +263,6 @@
                 const dateLabel = !latest.fat && lastFat ? lastFat.date : '';
                 
                 const m = calculateMetrics(latest.weight, displayFat, displayMus, profile);
-                
-                // Safe return with defaults if calculation fails
                 return { 
                     weight: latest.weight, 
                     fatRate: m ? m.fatRate : 0, 
@@ -310,7 +330,7 @@
             const bfConfig = getRanges('bf');
             const ffmiConfig = getRanges('ffmi');
 
-            // Actions - FIXED
+            // Actions
             const openEditModal = (log) => { 
                 setFormData({ 
                     date: log.date, 
@@ -321,25 +341,18 @@
                 setEditingLogId(log.id); 
                 setIsEntryOpen(true); 
             };
-
-            const handleSaveLog = (e) => { 
-                e.preventDefault(); 
-                if (!formData.weight) return; 
-                const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; 
-                const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; 
-                setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); 
-                setIsEntryOpen(false); 
-                setEditingLogId(null); 
-                setFormData({date:new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:''}); 
-            };
-            
-            // 核心修复：删除逻辑改为弹窗触发
+            const handleSaveLog = (e) => { e.preventDefault(); if (!formData.weight) return; const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); setIsEntryOpen(false); setEditingLogId(null); setFormData({date:new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:''}); };
             const requestDelete = (id) => { setDeleteId(id); };
             const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
+            const handleReset = () => { if (window.confirm("⚠️ 彻底清除所有历史并重置？")) { localStorage.removeItem('pro_fit_profile_v4_0'); localStorage.removeItem('pro_fit_logs_v4_0'); setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); setLogs([]); setOnboardingStep(0); setIsSettingsOpen(false); } };
+            
+            // 打开设置时，初始化 tempProfile
+            const openSettings = () => {
+                setTempProfile(profile);
+                setIsSettingsOpen(true);
+            };
 
-            const handleReset = () => { if (window.confirm("⚠️ 彻底清除所有历史并重置？")) { localStorage.removeItem('pro_fit_profile_v3_7'); localStorage.removeItem('pro_fit_logs_v3_7'); setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); setLogs([]); setOnboardingStep(0); setIsSettingsOpen(false); } };
-
-            useEffect(() => { localStorage.setItem('pro_fit_profile_v3_7', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v3_7', JSON.stringify(logs)); }, [profile, logs]);
+            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_0', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_0', JSON.stringify(logs)); }, [profile, logs]);
             useEffect(() => { if (onboardingStep === 5) { setTimeout(() => { if (profile.startWeight) setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); setProfile(p => ({...p, initialized: true})); }, 2000); } }, [onboardingStep]);
 
             if (!profile.initialized) {
@@ -376,12 +389,13 @@
                                 <button onClick={()=>setOnboardingStep(4)} disabled={!profile.startWeight} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
                             </div>}
 
+                            {/* Step 4: Fixed Logic for Onboarding */}
                             {onboardingStep === 4 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">定下目标</h2>
                                 <div className="space-y-6">
-                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体重 (KG)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.targetWeight} onChange={e=>handleGoalChange(weeklyRate, e.target.value)}/></div>
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体重 (KG)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.targetWeight} onChange={e=>handleOnboardingGoalChange(weeklyRate, e.target.value)}/></div>
                                     <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体脂 (%)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-2xl font-bold outline-none" value={profile.targetFatRate} onChange={e=>setProfile({...profile, targetFatRate:e.target.value})}/></div>
-                                    <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700"><div className="flex justify-between items-center mb-4"><label className="text-xs font-bold text-slate-300 uppercase flex items-center gap-1"><Icon name="speed" size={16} className="text-emerald-400"/> 每周减重配速</label><span className="text-emerald-400 font-black text-lg">{weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span></span></div><input type="range" min="0.1" max="1.5" step="0.1" value={weeklyRate} onChange={e=>handleGoalChange(e.target.value, profile.targetWeight)} className="w-full mb-2"/><div className="flex justify-between text-[10px] font-bold text-slate-500 mb-6"><span>温和</span><span className={weeklyRate>=0.5&&weeklyRate<=1.0?"text-emerald-400":""}>{weeklyRate>=0.5&&weeklyRate<=1.0?"✅ 黄金区间":"推荐"}</span><span>极速</span></div><div className="flex items-center gap-3 bg-slate-900 p-4 rounded-xl"><div className="p-2 bg-slate-800 rounded-lg text-slate-400"><Icon name="event" size={20}/></div><div><p className="text-[10px] text-slate-500 uppercase font-bold mb-0.5">预计达成日期</p><p className="text-white font-bold text-lg">{profile.targetDate||'--'}</p></div></div></div>
+                                    <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700"><div className="flex justify-between items-center mb-4"><label className="text-xs font-bold text-slate-300 uppercase flex items-center gap-1"><Icon name="speed" size={16} className="text-emerald-400"/> 每周减重配速</label><span className="text-emerald-400 font-black text-lg">{weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span></span></div><input type="range" min="0.1" max="1.5" step="0.1" value={weeklyRate} onChange={e=>handleOnboardingGoalChange(e.target.value, profile.targetWeight)} className="w-full mb-2"/><div className="flex justify-between text-[10px] font-bold text-slate-500 mb-6"><span>温和</span><span className={weeklyRate>=0.5&&weeklyRate<=1.0?"text-emerald-400":""}>{weeklyRate>=0.5&&weeklyRate<=1.0?"✅ 黄金区间":"推荐"}</span><span>极速</span></div><div className="flex items-center gap-3 bg-slate-900 p-4 rounded-xl"><div className="p-2 bg-slate-800 rounded-lg text-slate-400"><Icon name="event" size={20}/></div><div><p className="text-[10px] text-slate-500 uppercase font-bold mb-0.5">预计达成日期</p><p className="text-white font-bold text-lg">{profile.targetDate||'--'}</p></div></div></div>
                                 </div>
                                 <button onClick={()=>setOnboardingStep(5)} disabled={!profile.targetWeight || !profile.targetDate} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">生成计划</button>
                             </div>}
@@ -397,7 +411,7 @@
                     <header className="relative bg-[#0F172A] pb-24 rounded-b-[3.5rem] overflow-hidden shadow-2xl">
                         <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[150%] bg-gradient-to-br from-indigo-900/20 via-slate-900 to-transparent blur-3xl pointer-events-none animate-pulse"></div>
                         <div className="relative z-10 px-8 pt-14 text-white">
-                            <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-4"><SpikeLogo size={48} /><div><div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RES.HAPE</div><h1 className="text-2xl font-black">{profile.name}</h1></div></div><button onClick={()=>setIsSettingsOpen(true)} className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:bg-white/20 transition-colors"><Icon name="settings" size={20}/></button></div>
+                            <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-4"><SpikeLogo size={48} /><div><div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RES.HAPE</div><h1 className="text-2xl font-black">{profile.name}</h1></div></div><button onClick={openSettings} className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:bg-white/20 transition-colors"><Icon name="settings" size={20}/></button></div>
                             <div className="flex justify-between items-end">
                                 <div><p className="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest">当前状态</p><div className="flex items-baseline gap-1.5"><span className="text-7xl font-black tracking-tighter" style={{ textShadow: '0 10px 30px rgba(99, 102, 241, 0.4)' }}>{currentStats?.weight || '--'}</span><span className="text-lg font-bold opacity-40">KG</span></div>{logs.length > 2 && <MiniChart data={logs} />}</div>
                                 <div className="text-right mb-2">{streak > 1 && <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-500 text-[10px] font-black mb-3"><Icon name="bolt" size={12}/> {streak} DAY STREAK</div>}<p className="text-slate-400 text-[10px] font-black uppercase mb-1">距离目标</p><p className="text-3xl font-black text-white">{(currentStats?.weight ? currentStats.weight - profile.targetWeight : 0).toFixed(1)}</p></div>
@@ -484,23 +498,79 @@
                             <div className="relative w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto no-scrollbar">
                                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
                                 <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2"><Icon name="tune" className="text-indigo-600"/> 计划调整</h2>
-                                <div className="space-y-4">
-                                    <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100">
-                                        <p className="text-xs font-black text-slate-400 mb-4 uppercase tracking-widest">重设核心目标</p>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-white p-3 rounded-xl shadow-sm"><input type="number" step="0.1" className="w-full font-black text-indigo-600" value={tempProfile.targetWeight} onChange={e=>handleGoalChange(weeklyRate, e.target.value)} /></div>
-                                            <div className="bg-white p-3 rounded-xl shadow-sm"><input type="date" className="w-full font-bold text-slate-500" value={tempProfile.targetDate} onChange={e=>setTempProfile({...tempProfile, targetDate:e.target.value})} /></div>
+                                
+                                <div className="space-y-6">
+                                    {/* 修复：使用更清晰的大号输入框，解决 iOS 上看不清的问题 */}
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-400 uppercase block mb-2">新的目标体重 (KG)</label>
+                                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center">
+                                            <input 
+                                                type="number" 
+                                                step="0.1" 
+                                                className="w-full bg-transparent text-3xl font-black text-indigo-600 outline-none placeholder-slate-300"
+                                                value={tempProfile.targetWeight} 
+                                                onChange={e => handleSettingsGoalChange(weeklyRate, e.target.value)}
+                                                placeholder="0.0"
+                                            />
+                                            <span className="text-sm font-bold text-slate-400 ml-2">KG</span>
                                         </div>
                                     </div>
-                                    
-                                    <div className="p-5 bg-slate-900 rounded-3xl border border-slate-800 text-white">
-                                        <div className="flex justify-between items-center mb-4"><label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1"><Icon name="speed" size={16} className="text-emerald-400"/> 每周减重配速</label><span className="text-emerald-400 font-black text-lg">{weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span></span></div>
-                                        <input type="range" min="0.1" max="1.5" step="0.1" value={weeklyRate} onChange={e=>handleGoalChange(e.target.value, tempProfile.targetWeight)} className="w-full mb-2"/>
-                                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-2"><span>温和</span><span className={weeklyRate>=0.5&&weeklyRate<=1.0?"text-emerald-400":""}>{weeklyRate>=0.5&&weeklyRate<=1.0?"✅ 黄金区间":"推荐"}</span><span>极速</span></div>
+
+                                    {/* 修复：移除日期输入框，改为只读显示，避免逻辑冲突 */}
+                                    <div className="p-5 bg-slate-900 rounded-3xl border border-slate-800 text-white shadow-xl">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                <Icon name="speed" size={16} className="text-emerald-400"/> 减重配速
+                                            </label>
+                                            <span className="text-emerald-400 font-black text-xl">
+                                                {weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span>
+                                            </span>
+                                        </div>
+                                        
+                                        <input 
+                                            type="range" 
+                                            min="0.1" 
+                                            max="1.5" 
+                                            step="0.1" 
+                                            value={weeklyRate} 
+                                            onChange={e => handleSettingsGoalChange(e.target.value, tempProfile.targetWeight)} 
+                                            className="w-full mb-3"
+                                        />
+                                        
+                                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-6 border-b border-slate-800 pb-6">
+                                            <span>温和</span>
+                                            <span className={weeklyRate >= 0.5 && weeklyRate <= 1.0 ? "text-emerald-400" : ""}>
+                                                {weeklyRate >= 0.5 && weeklyRate <= 1.0 ? "✅ 黄金区间" : "推荐"}
+                                            </span>
+                                            <span>极速</span>
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-2 bg-slate-800 rounded-lg text-slate-400">
+                                                    <Icon name="event" size={20}/>
+                                                </div>
+                                                <span className="text-xs text-slate-400 font-bold uppercase">预计达成</span>
+                                            </div>
+                                            <p className="text-white font-black text-xl tracking-tight">
+                                                {tempProfile.targetDate || '--'}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <button onClick={()=>{setProfile({...tempProfile});setIsSettingsOpen(false)}} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg">保存更改</button>
-                                    <button onClick={handleReset} className="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold border border-rose-100 flex items-center justify-center gap-2 mt-4"><Icon name="delete_forever" size={18}/> 彻底清除所有记录</button>
+                                    <button 
+                                        onClick={() => { setProfile({...tempProfile}); setIsSettingsOpen(false); }} 
+                                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition-transform"
+                                    >
+                                        保存新计划
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={handleReset} 
+                                        className="w-full py-4 text-rose-500 font-bold flex items-center justify-center gap-2 opacity-60 hover:opacity-100"
+                                    >
+                                        <Icon name="delete_forever" size={18}/> 重置所有数据
+                                    </button>
                                 </div>
                             </div>
                         </div>
