@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>重塑 Reshape</title>
     
-    <!-- PWA 配置 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="https://ui-avatars.com/api/?name=R&background=0f172a&color=facc15&size=512&font-size=0.6&bold=true">
-    <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=R&background=0f172a&color=facc15&size=512&font-size=0.6&bold=true">
+    <!-- === PWA 核心配置 (Base64 强制内嵌 Spike 图标) === -->
+    <!-- 这是一个纯代码生成的 Spike 图标，不再依赖外部链接，确保 iOS 能正确读取 -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBGMTcyQSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj5SPC90ZXh0PjxwYXRoIGQ9Ik0zMjAgNDAgTDE5MCAyNzAgSDI3MCBMMTcwIDQ5MCBMMzUwIDIyMCBIMjYwIEwzMjAgNDAgWiIgZmlsbD0iI0ZBQ0MxNSIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE1Ii8+PC9zdmc+">
+    <link rel="icon" type="image/png" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBGMTcyQSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSIzNTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj5SPC90ZXh0PjxwYXRoIGQ9Ik0zMjAgNDAgTDE5MCAyNzAgSDI3MCBMMTcwIDQ5MCBMMzUwIDIyMCBIMjYwIEwzMjAgNDAgWiIgZmlsbD0iI0ZBQ0MxNSIgc3Ryb2tlPSIjMEYxNzJBIiBzdHJva2Utd2lkdGg9IjE1Ii8+PC9zdmc+">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1E293B">
@@ -160,11 +162,11 @@
         // --- 3. 主程序 ---
         const App = () => {
             const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_profile_v4_2');
+                const saved = localStorage.getItem('pro_fit_profile_v4_3'); // New version key
                 return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
             });
             const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_logs_v4_2');
+                const saved = localStorage.getItem('pro_fit_logs_v4_3'); // New version key
                 return saved ? JSON.parse(saved) : [];
             });
 
@@ -174,16 +176,14 @@
             const [isEntryOpen, setIsEntryOpen] = useState(false);
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [editingLogId, setEditingLogId] = useState(null);
-            
-            // Delete & Reset state
             const [deleteId, setDeleteId] = useState(null);
-            const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false); // 新增：重置确认弹窗状态
+            const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
             const [trendViewMode, setTrendViewMode] = useState('daily');
             const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], weight: '', muscle: '', fat: '' });
             const [tempProfile, setTempProfile] = useState(profile);
 
-            // Calc (Unchanged logic)
+            // Calc
             const calculateTargetDate = (rate, targetW) => {
                 const start = parseFloat(profile.startWeight), target = parseFloat(targetW), r = parseFloat(rate);
                 if (!start || !target || !r) return null;
@@ -304,7 +304,7 @@
                 const cur = weeklyData[weeklyData.length-2].avgWeight - weeklyData[weeklyData.length-1].avgWeight;
                 const need = (currentStats?.weight - profile.targetWeight) / (raceMetrics.daysLeft / 7);
                 let rate = 0, advice = '';
-                if (cur <= 0) { rate = 10; advice = '周均重反弹。请检查饮食隐形热量或是否有过度压力。'; }
+                if (cur <= 0) { rate = 10; advice = '周均重反弹。检查饮食隐形热量或是否有过度压力。'; }
                 else {
                     const r = cur / need;
                     if (r >= 1.0) { rate = 95; advice = '速度完美！保持节奏即可准时达成目标。'; }
@@ -343,25 +343,23 @@
             const handleSaveLog = (e) => { e.preventDefault(); if (!formData.weight) return; const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); setIsEntryOpen(false); setEditingLogId(null); setFormData({date:new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:''}); };
             const requestDelete = (id) => { setDeleteId(id); }; 
             const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
-            
-            // 修复：使用独立弹窗代替 window.confirm
             const confirmReset = () => { 
-                localStorage.removeItem('pro_fit_profile_v4_2'); 
-                localStorage.removeItem('pro_fit_logs_v4_2'); 
+                localStorage.removeItem('pro_fit_profile_v4_3'); 
+                localStorage.removeItem('pro_fit_logs_v4_3'); 
                 setProfile({ age: '', height: '', gender: 'male', startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
                 setLogs([]); 
                 setOnboardingStep(0); 
                 setIsSettingsOpen(false); 
                 setIsResetConfirmOpen(false);
             };
-
+            
             // 打开设置时，初始化 tempProfile
             const openSettings = () => {
                 setTempProfile(profile);
                 setIsSettingsOpen(true);
             };
 
-            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_2', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_2', JSON.stringify(logs)); }, [profile, logs]);
+            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_3', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_3', JSON.stringify(logs)); }, [profile, logs]);
             useEffect(() => { if (onboardingStep === 5) { setTimeout(() => { if (profile.startWeight) setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); setProfile(p => ({...p, initialized: true})); }, 2000); } }, [onboardingStep]);
 
             if (!profile.initialized) {
