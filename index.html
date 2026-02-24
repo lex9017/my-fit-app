@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>重塑 Reshape</title>
     
-    <!-- === PWA 核心配置 (强制内嵌 Base64 图标) === -->
-    <!-- 这是一个纯代码绘制的 Spike 图标 (黑底+白R+黄闪电)，不再依赖外部网络，确保 iOS 能 100% 读取 -->
+    <!-- === PWA 核心配置 === -->
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjojMEYxNzJBIj48dGV4dCB4PSI1MCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI4NSIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlI8L3RleHQ+PHBhdGggZD0iTTcwIDAgTDQwIDUwIEg1NSBMMjUgMTAwIEw2MCA1MCBINTAgTDcwIDBaIiBmaWxsPSIjZmFjYzE1Ii8+PC9zdmc+">
     <link rel="icon" type="image/png" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjojMEYxNzJBIj48dGV4dCB4PSI1MCIgeT0iODAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI4NSIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlI8L3RleHQ+PHBhdGggZD0iTTcwIDAgTDQwIDUwIEg1NSBMMjUgMTAwIEw2MCA1MCBINTAgTDcwIDBaIiBmaWxsPSIjZmFjYzE1Ii8+PC9zdmc+">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1E293B">
@@ -69,8 +67,15 @@
             { val: 1.9, label: "专业", desc: "体力工作或双倍训练" }
         ];
 
+        // 提升到组件外部，确保全局唯一，绝对不丢失数据
+        const STORAGE_KEY_PROFILE = 'reshape_global_profile';
+        const STORAGE_KEY_LOGS = 'reshape_global_logs';
+
         const { useState, useEffect, useMemo } = React;
         const RechartsObj = window.Recharts || null;
+
+        // 检测是否在 iOS Safari 中运行，且未安装到桌面
+        const isIOSBrowser = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.navigator.standalone;
 
         // --- Chart Components ---
         const MiniChart = ({ data }) => {
@@ -170,11 +175,11 @@
         // --- 3. 主程序 ---
         const App = () => {
             const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_profile_v4_6'); // New key
+                const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
                 return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
             });
             const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem('pro_fit_logs_v4_6'); // New key
+                const saved = localStorage.getItem(STORAGE_KEY_LOGS);
                 return saved ? JSON.parse(saved) : [];
             });
 
@@ -227,13 +232,11 @@
                 const hM = prof.height / 100;
                 let bmr = (10 * weight) + (6.25 * prof.height) - (5 * prof.age);
                 bmr = prof.gender === 'male' ? bmr + 5 : bmr - 161;
-                // TDEE 计算
                 const tdee = Math.round(bmr * (prof.activityLevel || 1.2));
                 const fatRate = (fatMass && weight) ? ((fatMass / weight) * 100) : 0;
                 const ffmi = ((weight - (fatMass || 0)) / (hM * hM) + 6.1 * (1.8 - hM)).toFixed(1);
                 return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), tdee: tdee, fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
             };
-
             const calculateWeeklyData = () => {
                 if (logs.length === 0) return [];
                 const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -248,7 +251,6 @@
                 return Object.keys(groups).sort((a,b)=>a-b).map(k => ({ week: `W${parseInt(k)+1}`, avgWeight: parseFloat((groups[k].sum/groups[k].count).toFixed(1)) }))
                     .map((w, i, arr) => ({ ...w, change: i === 0 ? 0 : parseFloat((w.avgWeight - arr[i-1].avgWeight).toFixed(1)) }));
             };
-
             const calculateTrendData = () => {
                 if (logs.length === 0) return [];
                 const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -271,31 +273,29 @@
                 const dateLabel = !latest.fat && lastFat ? lastFat.date : '';
                 
                 const m = calculateMetrics(latest.weight, displayFat, displayMus, profile);
+                if (!m) return { weight: latest.weight, fatRate: 0, ffmi: 0, bmr: 0, tdee: 0, dateLabel };
                 return { 
                     weight: latest.weight, 
-                    fatRate: m ? m.fatRate : 0, 
-                    ffmi: m ? m.ffmi : 0, 
-                    bmr: m ? m.bmr : 0, 
-                    tdee: m ? m.tdee : 0,
+                    fatRate: m.fatRate, 
+                    ffmi: m.ffmi, 
+                    bmr: m.bmr, 
+                    tdee: m.tdee,
                     dateLabel: dateLabel 
                 };
             }, [logs, profile]);
 
-            // Daily Calorie Target
             const dailyTarget = useMemo(() => {
                 if (!currentStats || !currentStats.tdee) return 0;
-                // 1kg fat approx 7700 kcal. Daily deficit = (weeklyRate * 7700) / 7
                 const dailyDeficit = (weeklyRate * 7700) / 7;
                 return Math.round(currentStats.tdee - dailyDeficit);
             }, [currentStats, weeklyRate]);
 
-            // Macro Breakdown (50/30/20)
             const macros = useMemo(() => {
                 if (!dailyTarget) return null;
                 return {
-                    carbs: Math.round(dailyTarget * 0.5 / 4), // 50% Carbs (4kcal/g)
-                    protein: Math.round(dailyTarget * 0.3 / 4), // 30% Protein (4kcal/g)
-                    fat: Math.round(dailyTarget * 0.2 / 9) // 20% Fat (9kcal/g)
+                    carbs: Math.round(dailyTarget * 0.5 / 4),
+                    protein: Math.round(dailyTarget * 0.3 / 4),
+                    fat: Math.round(dailyTarget * 0.2 / 9)
                 };
             }, [dailyTarget]);
 
@@ -332,7 +332,7 @@
                 const cur = weeklyData[weeklyData.length-2].avgWeight - weeklyData[weeklyData.length-1].avgWeight;
                 const need = (currentStats?.weight - profile.targetWeight) / (raceMetrics.daysLeft / 7);
                 let rate = 0, advice = '';
-                if (cur <= 0) { rate = 10; advice = '周均重反弹。检查饮食隐形热量或是否有过度压力。'; }
+                if (cur <= 0) { rate = 10; advice = '周均重反弹。请检查饮食隐形热量或是否有过度压力。'; }
                 else {
                     const r = cur / need;
                     if (r >= 1.0) { rate = 95; advice = '速度完美！保持节奏即可准时达成目标。'; }
@@ -358,43 +358,81 @@
             const ffmiConfig = getRanges('ffmi');
 
             // Actions
-            const openEditModal = (log) => { 
+            const openAddModal = () => {
+                setEditingLogId(null);
+                const latestLog = logs[0] || {};
+                const latestFatLog = logs.find(l => l.fat > 0) || {};
+                const latestMusLog = logs.find(l => l.muscle > 0) || {};
+
                 setFormData({ 
-                    date: log.date, 
-                    weight: log.weight, 
-                    fat: log.fat || '', 
-                    muscle: log.muscle || '' 
+                    date: new Date().toISOString().split('T')[0], 
+                    weight: latestLog.weight || profile.startWeight || '', 
+                    fat: latestFatLog.fat || '', 
+                    muscle: latestMusLog.muscle || '' 
                 }); 
-                setEditingLogId(log.id); 
                 setIsEntryOpen(true); 
             };
-            const handleSaveLog = (e) => { e.preventDefault(); if (!formData.weight) return; const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); setIsEntryOpen(false); setEditingLogId(null); setFormData({date:new Date().toISOString().split('T')[0], weight:'', fat:'', muscle:''}); };
+
+            const openEditModal = (log) => { setFormData({ date: log.date, weight: log.weight, fat: log.fat || '', muscle: log.muscle || '' }); setEditingLogId(log.id); setIsEntryOpen(true); };
+            const handleSaveLog = (e) => { e.preventDefault(); if (!formData.weight) return; const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); setIsEntryOpen(false); setEditingLogId(null); };
             const requestDelete = (id) => { setDeleteId(id); }; 
             const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
             const confirmReset = () => { 
-                localStorage.removeItem('pro_fit_profile_v4_5'); 
-                localStorage.removeItem('pro_fit_logs_v4_5'); 
+                localStorage.removeItem(STORAGE_KEY_PROFILE); 
+                localStorage.removeItem(STORAGE_KEY_LOGS); 
                 setProfile({ age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
                 setLogs([]); 
                 setOnboardingStep(0); 
                 setIsSettingsOpen(false); 
                 setIsResetConfirmOpen(false);
             };
-            
-            const openSettings = () => {
-                setTempProfile(profile);
-                setIsSettingsOpen(true);
-            };
+            const openSettings = () => { setTempProfile(profile); setIsSettingsOpen(true); };
 
-            useEffect(() => { localStorage.setItem('pro_fit_profile_v4_5', JSON.stringify(profile)); localStorage.setItem('pro_fit_logs_v4_5', JSON.stringify(logs)); }, [profile, logs]);
-            useEffect(() => { if (onboardingStep === 5) { setTimeout(() => { if (profile.startWeight) setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); setProfile(p => ({...p, initialized: true})); }, 2000); } }, [onboardingStep]);
+            // 监听数据变化并自动保存到本地 (永不丢失)
+            useEffect(() => { 
+                localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile)); 
+                localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs)); 
+            }, [profile, logs]);
+
+            useEffect(() => { 
+                if (onboardingStep === 5) { 
+                    setTimeout(() => { 
+                        if (profile.startWeight) {
+                            setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); 
+                        }
+                        setProfile(p => ({...p, initialized: true})); 
+                    }, 2000); 
+                } 
+            }, [onboardingStep]);
 
             if (!profile.initialized) {
                 return (
-                    <div className="max-w-md mx-auto min-h-screen bg-[#0F172A] flex flex-col text-white justify-center p-8 overflow-hidden">
-                        <div className="w-full h-1 bg-slate-800 absolute top-0 left-0"><div className="h-full bg-indigo-500 progress-bar" style={{ width: `${(onboardingStep / 5) * 100}%` }}></div></div>
-                        <div className="flex-1 flex flex-col justify-center">
-                            {onboardingStep === 0 && <div className="text-center slide-up"><div className="mb-10"><SpikeLogo size={96} className="mx-auto" /></div><h1 className="text-5xl font-black mb-4 tracking-tighter">RESHAPE</h1><p className="text-slate-400 text-lg">意志与肉体的重构</p><button onClick={() => setOnboardingStep(1)} className="mt-16 w-full py-5 bg-white text-slate-950 font-black rounded-full text-xl shadow-2xl transition-transform active:scale-95">开始锻造</button></div>}
+                    <div className="max-w-md mx-auto min-h-screen bg-[#0F172A] flex flex-col text-white justify-center p-8 overflow-hidden relative">
+                        <div className="w-full h-1 bg-slate-800 absolute top-0 left-0"><div className="h-full bg-indigo-500 progress-bar" style={{ width: `${(onboardingStep / 5) * 100}%`, transition: 'width 0.3s ease' }}></div></div>
+                        
+                        <div className="flex-1 flex flex-col justify-center relative z-10">
+                            {onboardingStep === 0 && (
+                                <div className="text-center slide-up">
+                                    <div className="mb-10"><SpikeLogo size={96} className="mx-auto" /></div>
+                                    <h1 className="text-5xl font-black mb-4 tracking-tighter">RESHAPE</h1>
+                                    <p className="text-slate-400 text-lg mb-10">意志与肉体的重构</p>
+
+                                    {/* 💡 防呆提示：如果是 iOS Safari 且非桌面启动，强制提醒 */}
+                                    {isIOSBrowser && (
+                                        <div className="bg-indigo-500/20 border border-indigo-500/50 p-4 rounded-2xl mb-8 text-left animate-pulse shadow-lg shadow-indigo-500/10">
+                                            <h4 className="text-indigo-300 font-bold text-sm mb-2 flex items-center gap-1">
+                                                <Icon name="info" size={18}/> 苹果用户防丢失指南
+                                            </h4>
+                                            <p className="text-indigo-200/80 text-xs leading-relaxed">
+                                                请点击浏览器底部 <Icon name="ios_share" size={14} className="inline text-white"/> <b>添加到主屏幕</b>。<br/>
+                                                <span className="text-rose-400 font-bold">然后再从桌面打开App填写数据！</span>否则下次打开数据会清空！
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <button onClick={() => setOnboardingStep(1)} className="mt-8 w-full py-5 bg-white text-slate-950 font-black rounded-full text-xl shadow-2xl transition-transform active:scale-95">开始锻造</button>
+                                </div>
+                            )}
                             
                             {onboardingStep === 1 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">基础档案</h2>
@@ -411,7 +449,6 @@
                                 <button onClick={()=>setOnboardingStep(2)} disabled={!profile.name || !profile.gender} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
                             </div>}
 
-                            {/* Added Activity Level to Step 2 */}
                             {onboardingStep === 2 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">身体参数</h2>
                                 <div className="space-y-6">
@@ -461,7 +498,17 @@
                     <header className="relative bg-[#0F172A] pb-24 rounded-b-[3.5rem] overflow-hidden shadow-2xl">
                         <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[150%] bg-gradient-to-br from-indigo-900/20 via-slate-900 to-transparent blur-3xl pointer-events-none animate-pulse"></div>
                         <div className="relative z-10 px-8 pt-14 text-white">
-                            <div className="flex justify-between items-center mb-8"><div className="flex items-center gap-4"><SpikeLogo size={48} /><div><div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RES.HAPE</div><h1 className="text-2xl font-black">{profile.name}</h1></div></div><button onClick={openSettings} className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:bg-white/20 transition-colors"><Icon name="settings" size={20}/></button></div>
+                            <div className="flex justify-between items-center mb-8">
+                                <div className="flex items-center gap-4">
+                                    <SpikeLogo size={48} />
+                                    <div>
+                                        {/* FIX: Removed the dot in RES.HAPE */}
+                                        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RESHAPE</div>
+                                        <h1 className="text-2xl font-black">{profile.name}</h1>
+                                    </div>
+                                </div>
+                                <button onClick={openSettings} className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center text-white/80 hover:bg-white/20 transition-colors"><Icon name="settings" size={20}/></button>
+                            </div>
                             <div className="flex justify-between items-end">
                                 <div><p className="text-slate-400 text-[10px] font-black uppercase mb-1 tracking-widest">当前状态</p><div className="flex items-baseline gap-1.5"><span className="text-7xl font-black tracking-tighter" style={{ textShadow: '0 10px 30px rgba(99, 102, 241, 0.4)' }}>{currentStats?.weight || '--'}</span><span className="text-lg font-bold opacity-40">KG</span></div>{logs.length > 2 && <MiniChart data={logs} />}</div>
                                 <div className="text-right mb-2">{streak > 1 && <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/30 text-yellow-500 text-[10px] font-black mb-3"><Icon name="bolt" size={12}/> {streak} DAY STREAK</div>}<p className="text-slate-400 text-[10px] font-black uppercase mb-1">距离目标</p><p className="text-3xl font-black text-white">{(currentStats?.weight ? currentStats.weight - profile.targetWeight : 0).toFixed(1)}</p></div>
@@ -552,7 +599,7 @@
                     <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[92%] max-w-sm z-50">
                         <div className="glass-nav rounded-full p-2.5 flex justify-around items-center shadow-2xl nav-shadow border border-white/10">
                             <button onClick={()=>setActiveTab('home')} className={`p-4 rounded-full transition-all duration-300 ${activeTab==='home'?'bg-indigo-600 text-white shadow-lg':'text-slate-400 hover:text-white'}`}><Icon name="dashboard" size={24}/></button>
-                            <button onClick={()=>{setEditingLogId(null);setFormData({date:new Date().toISOString().split('T')[0],weight:'',fat:'',muscle:''});setIsEntryOpen(true)}} className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-violet-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-95 transition-transform"><Icon name="add" size={32}/></button>
+                            <button onClick={openAddModal} className="w-12 h-12 bg-gradient-to-tr from-indigo-500 to-violet-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 active:scale-95 transition-transform"><Icon name="add" size={32}/></button>
                             <button onClick={()=>setActiveTab('trends')} className={`p-4 rounded-full transition-all duration-300 ${activeTab==='trends'?'bg-indigo-600 text-white shadow-lg':'text-slate-400 hover:text-white'}`}><Icon name="show_chart" size={24}/></button>
                             <button onClick={()=>setActiveTab('history')} className={`p-4 rounded-full transition-all duration-300 ${activeTab==='history'?'bg-indigo-600 text-white shadow-lg':'text-slate-400 hover:text-white'}`}><Icon name="history" size={24}/></button>
                         </div>
@@ -588,23 +635,29 @@
                                 <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2"><Icon name="tune" className="text-indigo-600"/> 计划调整</h2>
                                 
                                 <div className="space-y-6">
-                                    {/* 修复：使用更清晰的大号输入框，解决 iOS 上看不清的问题 */}
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-400 uppercase block mb-2">新的目标体重 (KG)</label>
-                                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center">
-                                            <input 
-                                                type="number" 
-                                                step="0.1" 
-                                                className="w-full bg-transparent text-3xl font-black text-indigo-600 outline-none placeholder-slate-300"
-                                                value={tempProfile.targetWeight} 
-                                                onChange={e => handleSettingsGoalChange(weeklyRate, e.target.value)}
-                                                placeholder="0.0"
-                                            />
-                                            <span className="text-sm font-bold text-slate-400 ml-2">KG</span>
+                                    <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200">
+                                        <h4 className="text-xs text-indigo-400 font-bold uppercase mb-4">目标设定</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">目标体重</label><input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetWeight} onChange={e=>handleSettingsGoalChange(weeklyRate, e.target.value)} /></div>
+                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">目标体脂</label><input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetFatRate} onChange={e=>setTempProfile({...tempProfile, targetFatRate:e.target.value})} /></div>
                                         </div>
                                     </div>
 
-                                    {/* 修复：移除日期输入框，改为只读显示，避免逻辑冲突 */}
+                                    <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200">
+                                        <h4 className="text-xs text-indigo-400 font-bold uppercase mb-4">日常活动强度</h4>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {ACTIVITY_LEVELS.map(level => (
+                                                <button key={level.val} onClick={() => setTempProfile({...tempProfile, activityLevel: level.val})} className={`p-4 rounded-xl text-left border transition-all flex items-center justify-between ${tempProfile.activityLevel === level.val ? 'border-amber-500 bg-amber-50 shadow-sm' : 'border-slate-200 bg-white'}`}>
+                                                    <div>
+                                                        <div className={`text-sm font-bold ${tempProfile.activityLevel === level.val ? 'text-amber-600' : 'text-slate-600'}`}>{level.label}</div>
+                                                        <div className="text-[10px] text-slate-400 mt-0.5">{level.desc}</div>
+                                                    </div>
+                                                    {tempProfile.activityLevel === level.val && <Icon name="check_circle" className="text-amber-500" size={20}/>}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <div className="p-5 bg-slate-900 rounded-3xl border border-slate-800 text-white shadow-xl">
                                         <div className="flex justify-between items-center mb-6">
                                             <label className="text-xs font-bold text-slate-400 uppercase flex items-center gap-1">
