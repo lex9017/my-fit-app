@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 终极保险：将第一个字改为 R，即使图片加载失败，苹果也会用 R 作为兜底图标 -->
     <title>Reshape</title>
     
-    <!-- === PWA 核心配置 === -->
-    <!-- 苹果 iOS 不支持 SVG 作为桌面图标，强制使用 PNG 格式 -->
-    <link rel="apple-touch-icon" sizes="180x180" href="https://ui-avatars.com/api/?name=R&background=0F172A&color=FACC15&size=180&font-size=0.65&bold=true&v=ios_fix_v5">
-    <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=R&background=0F172A&color=FACC15&size=180&font-size=0.65&bold=true&v=ios_fix_v5">
-    
+    <!-- PWA 核心配置 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://ui-avatars.com/api/?name=R&background=0F172A&color=FACC15&size=180&font-size=0.65&bold=true&v=v6_cloud">
+    <link rel="icon" type="image/png" href="https://ui-avatars.com/api/?name=R&background=0F172A&color=FACC15&size=180&font-size=0.65&bold=true&v=v6_cloud">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Reshape">
-    <meta name="theme-color" content="#1E293B">
+    <meta name="theme-color" content="#0F172A">
 
     <!-- 依赖 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,900;1,900&display=swap" rel="stylesheet">
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
@@ -27,22 +24,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #F8FAFC; color: #1e293b; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #0F172A; color: white; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .material-icons-round { vertical-align: middle; font-size: inherit; }
-        input[type="date"] { color-scheme: light; }
-        input { -webkit-appearance: none; border-radius: 0; outline: none; }
+        input[type="date"] { color-scheme: dark; }
+        input { -webkit-appearance: none; border-radius: 0; outline: none; background: transparent; }
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         .slide-up { animation: slideUp 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .font-brand { font-family: 'Montserrat', sans-serif; font-style: italic; }
-        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
-        .glass-nav { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .font-brand { font-family: 'Montserrat', sans-serif; }
         input[type=range] { -webkit-appearance: none; background: transparent; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #6366f1; margin-top: -8px; box-shadow: 0 0 10px rgba(99, 102, 241, 0.3); cursor: pointer; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #facc15; margin-top: -8px; box-shadow: 0 0 10px rgba(250,204,21, 0.5); cursor: pointer; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #334155; border-radius: 2px; }
         button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
     </style>
 </head>
@@ -51,179 +46,256 @@
 
     <script type="text/babel">
         const Icon = ({ name, className, size = 24 }) => <span className={`material-icons-round ${className}`} style={{fontSize: size+'px'}}>{name}</span>;
-
         const SpikeLogo = ({ className, size = 48 }) => (
             <div className={`relative flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
                 <div className="relative w-full h-full">
-                    <span className="font-brand font-black text-white absolute inset-0 flex items-center justify-center transform scale-y-110" style={{ fontSize: size * 0.85 + 'px' }}>R</span>
-                    <svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" viewBox="0 0 100 100" style={{ zIndex: 10 }}>
+                    <span className="font-brand font-black text-white absolute inset-0 flex items-center justify-center transform scale-y-110 italic" style={{ fontSize: size * 0.85 + 'px' }}>R</span>
+                    <svg className="absolute inset-0 w-full h-full drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" viewBox="0 0 100 100">
                         <path d="M70 0 L40 50 H55 L25 100 L60 50 H50 L70 0Z" fill="#facc15" />
                     </svg>
                 </div>
             </div>
         );
 
-        const ACTIVITY_LEVELS = [
-            { val: 1.2, label: "久坐", desc: "极少运动，办公室工作" },
-            { val: 1.375, label: "轻度", desc: "每周运动 1-3 次" },
-            { val: 1.55, label: "中度", desc: "每周运动 3-5 次" },
-            { val: 1.725, label: "高度", desc: "每周运动 6-7 次" },
-            { val: 1.9, label: "专业", desc: "体力工作或双倍训练" }
-        ];
+        // ==========================================
+        // <script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-        // 提升到组件外部，确保全局唯一，绝对不丢失数据
-        const STORAGE_KEY_PROFILE = 'reshape_global_profile';
-        const STORAGE_KEY_LOGS = 'reshape_global_logs';
-        const STORAGE_KEY_RATE = 'reshape_global_weekly_rate'; // 新增：保存配速的专属钥匙
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAupq_P2R0Mt2LBFiwdSn9P9XLl36k0-rk",
+    authDomain: "reshape-app-79f2f.firebaseapp.com",
+    projectId: "reshape-app-79f2f",
+    storageBucket: "reshape-app-79f2f.firebasestorage.app",
+    messagingSenderId: "252096614907",
+    appId: "1:252096614907:web:50556334770159130efb5e",
+    measurementId: "G-Q8QH2VQ45L"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+        // ==========================================
+        const MY_FIREBASE_CONFIG = {
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
 
         const { useState, useEffect, useMemo } = React;
         const RechartsObj = window.Recharts || null;
 
-        // 检测是否在 iOS Safari 中运行，且未安装到桌面
-        const isIOSBrowser = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.navigator.standalone;
-
-        // --- Chart Components ---
+        // --- Charts ---
         const MiniChart = ({ data }) => {
-            if (!RechartsObj) return null;
+            if (!RechartsObj || data.length === 0) return null;
             const { AreaChart, Area, ResponsiveContainer } = RechartsObj;
             return (
-                <div className="h-16 w-full opacity-40 mt-2">
+                <div className="h-16 w-full opacity-50 mt-2">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={[...data].reverse().slice(-7)}>
-                            <defs><linearGradient id="miniGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fff" stopOpacity={0.3}/><stop offset="95%" stopColor="#fff" stopOpacity={0}/></linearGradient></defs>
-                            <Area type="monotone" dataKey="weight" stroke="#fff" strokeWidth={2} fill="url(#miniGradient)" />
+                            <defs><linearGradient id="miniGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#facc15" stopOpacity={0.4}/><stop offset="95%" stopColor="#facc15" stopOpacity={0}/></linearGradient></defs>
+                            <Area type="monotone" dataKey="weight" stroke="#facc15" strokeWidth={2} fill="url(#miniGradient)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
             );
         };
 
-        const TrendChartDaily = ({ data }) => {
-            if (!RechartsObj) return <div className="h-full flex items-center justify-center text-xs text-slate-400">图表加载中...</div>;
-            const { ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = RechartsObj;
-            return (
-                <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={data}>
-                            <defs><linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/><stop offset="95%" stopColor="#6366f1" stopOpacity={0}/></linearGradient></defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="date" tick={{fontSize: 10, fill: '#94a3b8'}} tickLine={false} axisLine={false} />
-                            <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} labelStyle={{ color: '#64748b', fontSize: '12px' }} />
-                            <Line type="monotone" dataKey="rawWeight" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={{r: 3, fill: '#94a3b8'}} name="每日" />
-                            <Area type="monotone" dataKey="ma7Weight" stroke="#6366f1" strokeWidth={3} fill="url(#weightGradient)" name="均线" />
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                </div>
-            );
-        };
-
-        const TrendChartWeekly = ({ data }) => {
-            if (!RechartsObj) return <div className="h-full flex items-center justify-center text-xs text-slate-400">图表加载中...</div>;
-            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } = RechartsObj;
-            return (
-                <div className="h-64 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="week" tick={{fontSize: 10, fill: '#94a3b8'}} tickLine={false} axisLine={false} />
-                            <YAxis domain={['dataMin - 1', 'dataMax + 1']} hide />
-                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                            <Bar dataKey="avgWeight" radius={[6, 6, 0, 0]} name="周均重">
-                                {data.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.change > 0 ? '#f43f5e' : '#10b981'} />))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-            );
-        };
-
-        const Gauge = ({ title, value, unit, ranges, maxVal, minVal, dateLabel }) => {
-            const hasValue = value && !isNaN(value) && value > 0;
-            const displayValue = hasValue ? value : '--';
-            const percentage = hasValue ? Math.min(Math.max(((value - minVal) / (maxVal - minVal)) * 100, 0), 100) : 0;
-            const currentRange = hasValue ? (ranges.find(r => value >= r.min && value < r.max) || ranges[ranges.length - 1]) : { label: '待测算', color: 'bg-slate-200 text-slate-400' };
-            
-            return (
-                <div className="mb-8 last:mb-0">
-                    <div className="flex justify-between items-end mb-3">
-                        <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-600 uppercase flex items-center gap-1 tracking-wider">{title}</span>
-                            {dateLabel && <span className="text-[9px] text-slate-400 font-medium mt-0.5 tracking-tight">记录: {dateLabel}</span>}
-                        </div>
-                        <div className="text-right flex items-center gap-2">
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-md text-white shadow-sm ${currentRange.color}`}>{currentRange.label}</span>
-                            <span className="text-2xl font-black text-slate-800">{displayValue} <span className="text-xs text-slate-400">{unit}</span></span>
-                        </div>
-                    </div>
-                    <div className="relative h-4 w-full rounded-full flex overflow-hidden bg-slate-100">
-                        {ranges.map((range, index) => { 
-                            const rangeWidth = ((range.max - range.min) / (maxVal - minVal)) * 100; 
-                            return <div key={index} className={`${range.color.split(' ')[0]} h-full relative border-r border-white last:border-0 opacity-80`} style={{ width: `${rangeWidth}%` }}></div>; 
-                        })}
-                        <span className="absolute bottom-[-20px] left-0 text-[10px] font-bold text-slate-400">{minVal}</span>
-                    </div>
-                    <div className="flex justify-between mt-1 text-[9px] text-slate-500 font-bold uppercase relative h-4">
-                        {ranges.map((r,i) => (<span key={i} style={{width: `${((r.max - r.min)/(maxVal - minVal))*100}%`, textAlign:'center', display:'inline-block'}}>{r.label}</span>))}
-                    </div>
-                    {hasValue && (
-                        <div className="relative h-2 w-full mt-[-24px]">
-                            <div className="absolute top-[-8px] transition-all duration-1000 ease-out flex flex-col items-center" style={{ left: `${percentage}%`, transform: 'translateX(-50%)' }}>
-                                <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-slate-800 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]"></div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        // --- 3. 主程序 ---
+        // --- 主程序 ---
         const App = () => {
-            const [profile, setProfile] = useState(() => {
-                const saved = localStorage.getItem(STORAGE_KEY_PROFILE);
-                return saved ? JSON.parse(saved) : { age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false };
-            });
-            const [logs, setLogs] = useState(() => {
-                const saved = localStorage.getItem(STORAGE_KEY_LOGS);
-                return saved ? JSON.parse(saved) : [];
-            });
+            // 云端状态
+            const [authState, setAuthState] = useState('CHECKING'); // CHECKING, NO_CONFIG, LOGIN, LOGGED_IN
+            const [user, setUser] = useState(null);
+            const [db, setDb] = useState(null);
+            const [appId, setAppId] = useState('reshape-cloud-v1');
             
-            // 修复：从 localStorage 读取每周减重配速，如果没有则默认 0.5
-            const [weeklyRate, setWeeklyRate] = useState(() => {
-                const savedRate = localStorage.getItem(STORAGE_KEY_RATE);
-                return savedRate ? parseFloat(savedRate) : 0.5;
-            });
+            // 登录表单
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [authError, setAuthError] = useState('');
+            const [isAuthLoading, setIsAuthLoading] = useState(false);
 
+            // 应用数据
+            const [profile, setProfile] = useState({ initialized: false });
+            const [logs, setLogs] = useState([]);
+            const [weeklyRate, setWeeklyRate] = useState(0.5);
+
+            // UI 状态
             const [onboardingStep, setOnboardingStep] = useState(0); 
             const [activeTab, setActiveTab] = useState('home');
             const [isEntryOpen, setIsEntryOpen] = useState(false);
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
             const [editingLogId, setEditingLogId] = useState(null);
             const [deleteId, setDeleteId] = useState(null);
-            const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
-
-            const [trendViewMode, setTrendViewMode] = useState('daily');
             const [formData, setFormData] = useState({ date: new Date().toISOString().split('T')[0], weight: '', muscle: '', fat: '' });
-            const [tempProfile, setTempProfile] = useState(profile);
+            const [tempProfile, setTempProfile] = useState({});
 
-            // Calc
-            const calculateTargetDate = (rate, targetW) => {
-                const start = parseFloat(profile.startWeight), target = parseFloat(targetW), r = parseFloat(rate);
-                if (!start || !target || !r) return null;
-                const days = Math.ceil(Math.abs(start - target) / r * 7);
-                const d = new Date(); d.setDate(d.getDate() + days);
-                return d.toISOString().split('T')[0];
+            // 1. 初始化 Firebase 云服务器
+            useEffect(() => {
+                let unsubAuth = () => {};
+                const initCloud = async () => {
+                    try {
+                        // 使用原生的 Function 来执行 import，避免被 Babel 编译为 require 导致报错
+                        const dynamicImport = new Function('url', 'return import(url)');
+                        const appMod = await dynamicImport('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js');
+                        const authMod = await dynamicImport('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
+                        const dbMod = await dynamicImport('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                        window.fb = { ...appMod, ...authMod, ...dbMod };
+
+                        let config = MY_FIREBASE_CONFIG;
+                        let isCanvas = false;
+
+                        // 兼容 AI 画布环境预览
+                        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                            config = JSON.parse(__firebase_config);
+                            isCanvas = true;
+                            setAppId(typeof __app_id !== 'undefined' ? __app_id : 'reshape-cloud');
+                        }
+
+                        // 检查用户是否填写了密钥
+                        if (!config.apiKey || config.apiKey === "") {
+                            setAuthState('NO_CONFIG');
+                            return;
+                        }
+
+                        const app = window.fb.initializeApp(config);
+                        const auth = window.fb.getAuth(app);
+                        const firestore = window.fb.getFirestore(app);
+                        setDb(firestore);
+
+                        if (isCanvas && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await window.fb.signInWithCustomToken(auth, __initial_auth_token);
+                        }
+
+                        unsubAuth = window.fb.onAuthStateChanged(auth, (u) => {
+                            if (u) {
+                                setUser(u);
+                                setAuthState('LOGGED_IN');
+                            } else {
+                                setUser(null);
+                                setAuthState('LOGIN');
+                            }
+                        });
+                    } catch (err) {
+                        console.error("Cloud init failed", err);
+                        setAuthError("服务器连接失败，请检查配置。");
+                        setAuthState('LOGIN');
+                    }
+                };
+                initCloud();
+                return () => unsubAuth();
+            }, []);
+
+            // 2. 登录/注册逻辑
+            const handleLoginSubmit = async (e) => {
+                e.preventDefault();
+                setIsAuthLoading(true);
+                setAuthError('');
+                try {
+                    const auth = window.fb.getAuth();
+                    try {
+                        // 尝试登录
+                        await window.fb.signInWithEmailAndPassword(auth, email, password);
+                    } catch (err) {
+                        // 如果账号不存在，自动注册
+                        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                            try {
+                                await window.fb.createUserWithEmailAndPassword(auth, email, password);
+                            } catch (regErr) {
+                                setAuthError(regErr.message);
+                            }
+                        } else {
+                            setAuthError(err.message);
+                        }
+                    }
+                } catch (err) {
+                    setAuthError("操作失败：" + err.message);
+                } finally {
+                    setIsAuthLoading(false);
+                }
             };
+
+            const handleLogout = async () => {
+                if(window.confirm("确定要退出当前账号吗？")) {
+                    await window.fb.signOut(window.fb.getAuth());
+                    setIsSettingsOpen(false);
+                }
+            };
+
+            // 3. 数据同步与迁移 (云端 <-> 本地)
+            useEffect(() => {
+                if (authState !== 'LOGGED_IN' || !user || !db) return;
+
+                let unsubProfile = () => {};
+                let unsubLogs = () => {};
+
+                const syncData = async () => {
+                    const profileRef = window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'profile');
+                    const logsRef = window.fb.collection(db, 'artifacts', appId, 'users', user.uid, 'logs');
+
+                    // 监听档案
+                    unsubProfile = window.fb.onSnapshot(profileRef, async (snap) => {
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            setProfile(data.profileData || { initialized: false });
+                            setWeeklyRate(data.weeklyRate || 0.5);
+                        } else {
+                            // 云端没数据？从旧版 LocalStorage 偷数据上传！(无感迁移)
+                            const localProfile = localStorage.getItem('reshape_global_profile');
+                            const localRate = localStorage.getItem('reshape_global_weekly_rate');
+                            if (localProfile) {
+                                const pData = JSON.parse(localProfile);
+                                const pRate = localRate ? parseFloat(localRate) : 0.5;
+                                setProfile(pData); setWeeklyRate(pRate);
+                                await window.fb.setDoc(profileRef, { profileData: pData, weeklyRate: pRate });
+                            } else {
+                                setProfile({ initialized: false }); // 需要建档
+                            }
+                        }
+                    });
+
+                    // 监听日志
+                    unsubLogs = window.fb.onSnapshot(logsRef, async (snap) => {
+                        const fetched = [];
+                        snap.forEach(d => fetched.push(d.data()));
+                        
+                        if (fetched.length === 0) {
+                            // 迁移旧打卡记录
+                            const localLogs = localStorage.getItem('reshape_global_logs');
+                            if (localLogs) {
+                                const pLogs = JSON.parse(localLogs);
+                                setLogs(pLogs);
+                                for (const l of pLogs) {
+                                    await window.fb.setDoc(window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'logs', l.id.toString()), l);
+                                }
+                            } else {
+                                setLogs([]);
+                            }
+                        } else {
+                            setLogs(fetched.sort((a,b)=>new Date(b.date)-new Date(a.date)));
+                        }
+                    });
+                };
+                syncData();
+                return () => { unsubProfile(); unsubLogs(); };
+            }, [authState, user, db, appId]);
+
+
+            // --- 数据计算逻辑 (保留原有算法) ---
             const calculateDateFromRate = (rate, currentW, targetW) => {
-                 const start = parseFloat(currentW);
-                 const target = parseFloat(targetW);
-                 const r = parseFloat(rate);
+                 const start = parseFloat(currentW), target = parseFloat(targetW), r = parseFloat(rate);
                  if (!start || !target || !r || r === 0) return '--';
-                 const diff = Math.abs(start - target);
-                 const weeks = diff / r;
-                 const days = Math.ceil(weeks * 7);
-                 const d = new Date();
-                 d.setDate(d.getDate() + days);
+                 const days = Math.ceil(Math.abs(start - target) / r * 7);
+                 const d = new Date(); d.setDate(d.getDate() + days);
                  return d.toISOString().split('T')[0];
             };
             const handleOnboardingGoalChange = (newRate, newTargetWeight) => {
@@ -236,7 +308,6 @@
                 const newDate = calculateDateFromRate(rate, profile.startWeight, w);
                 setTempProfile(prev => ({ ...prev, targetWeight: w, targetDate: newDate }));
             };
-
             const calculateMetrics = (weight, fatMass, muscleMass, prof) => {
                 if (!weight || !prof.height || !prof.age) return null;
                 const hM = prof.height / 100;
@@ -245,208 +316,133 @@
                 const tdee = Math.round(bmr * (prof.activityLevel || 1.2));
                 const fatRate = (fatMass && weight) ? ((fatMass / weight) * 100) : 0;
                 const ffmi = ((weight - (fatMass || 0)) / (hM * hM) + 6.1 * (1.8 - hM)).toFixed(1);
-                return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), tdee: tdee, fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
+                return { bmi: (weight / (hM * hM)).toFixed(1), bmr: Math.round(bmr), tdee, fatRate: parseFloat(fatRate.toFixed(1)), ffmi: parseFloat(ffmi) };
             };
-            const calculateWeeklyData = () => {
-                if (logs.length === 0) return [];
-                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
-                const groups = {};
-                const start = new Date(profile.planStartDate);
-                sorted.forEach(log => {
-                    const diff = Math.ceil(Math.abs(new Date(log.date) - start) / 86400000);
-                    const wIdx = Math.floor(Math.max(0, diff) / 7);
-                    if (!groups[wIdx]) groups[wIdx] = { sum: 0, count: 0 };
-                    groups[wIdx].sum += log.weight; groups[wIdx].count++;
-                });
-                return Object.keys(groups).sort((a,b)=>a-b).map(k => ({ week: `W${parseInt(k)+1}`, avgWeight: parseFloat((groups[k].sum/groups[k].count).toFixed(1)) }))
-                    .map((w, i, arr) => ({ ...w, change: i === 0 ? 0 : parseFloat((w.avgWeight - arr[i-1].avgWeight).toFixed(1)) }));
-            };
-            const calculateTrendData = () => {
-                if (logs.length === 0) return [];
-                const sorted = [...logs].sort((a, b) => new Date(a.date) - new Date(b.date));
-                return sorted.map((log, i, arr) => {
-                    let sum = 0, count = 0;
-                    for (let j = i; j >= 0 && j > i - 7; j--) { if (arr[j].weight) { sum += arr[j].weight; count++; } }
-                    return { date: log.date.split('-').slice(1).join('/'), rawWeight: log.weight, ma7Weight: count > 0 ? parseFloat((sum/count).toFixed(1)) : null };
-                });
-            };
-
-            const trendData = useMemo(calculateTrendData, [logs]);
-            const weeklyData = useMemo(calculateWeeklyData, [logs, profile]);
-
             const currentStats = useMemo(() => {
                 if (logs.length === 0) return null;
                 const latest = logs[0];
                 const lastFat = logs.find(l => l.fat > 0);
                 const displayFat = latest.fat || (lastFat ? lastFat.fat : 0);
                 const displayMus = latest.muscle || (lastFat ? lastFat.muscle : 0);
-                const dateLabel = !latest.fat && lastFat ? lastFat.date : '';
-                
                 const m = calculateMetrics(latest.weight, displayFat, displayMus, profile);
-                if (!m) return { weight: latest.weight, fatRate: 0, ffmi: 0, bmr: 0, tdee: 0, dateLabel };
-                return { 
-                    weight: latest.weight, 
-                    fatRate: m.fatRate, 
-                    ffmi: m.ffmi, 
-                    bmr: m.bmr, 
-                    tdee: m.tdee,
-                    dateLabel: dateLabel 
-                };
+                if (!m) return { weight: latest.weight, fatRate: 0, ffmi: 0, bmr: 0, tdee: 0 };
+                return { weight: latest.weight, fatRate: m.fatRate, ffmi: m.ffmi, bmr: m.bmr, tdee: m.tdee };
             }, [logs, profile]);
 
             const dailyTarget = useMemo(() => {
                 if (!currentStats || !currentStats.tdee) return 0;
-                const dailyDeficit = (weeklyRate * 7700) / 7;
-                return Math.round(currentStats.tdee - dailyDeficit);
+                return Math.round(currentStats.tdee - ((weeklyRate * 7700) / 7));
             }, [currentStats, weeklyRate]);
-
-            const macros = useMemo(() => {
-                if (!dailyTarget) return null;
-                return {
-                    carbs: Math.round(dailyTarget * 0.5 / 4),
-                    protein: Math.round(dailyTarget * 0.3 / 4),
-                    fat: Math.round(dailyTarget * 0.2 / 9)
-                };
-            }, [dailyTarget]);
-
-            const streak = useMemo(() => {
-                if (logs.length === 0) return 0;
-                const dates = [...new Set(logs.map(l => l.date))].sort((a,b) => new Date(b)-new Date(a));
-                const today = new Date().toISOString().split('T')[0];
-                const yest = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-                if (dates[0] !== today && dates[0] !== yest) return 0;
-                let s = 1, curr = new Date(dates[0]);
-                for (let i = 1; i < dates.length; i++) {
-                    if (Math.ceil(Math.abs(curr - new Date(dates[i]))/86400000) === 1) { s++; curr = new Date(dates[i]); } else break;
-                }
-                return s;
-            }, [logs]);
-
+            
             const progress = useMemo(() => {
                 const s = parseFloat(profile.startWeight), t = parseFloat(profile.targetWeight), c = parseFloat(currentStats?.weight || s);
                 if (!s || !t) return 0;
                 return Math.min(Math.max(((s - c) / (s - t)) * 100, 0), 100).toFixed(0);
             }, [profile, currentStats]);
 
-            const raceMetrics = useMemo(() => {
-                if (!profile.planStartDate || !profile.targetDate) return { timeProgress: 0, weightProgress: 0, daysLeft: 0, status: 'EVEN' };
-                const total = new Date(profile.targetDate) - new Date(profile.planStartDate);
-                const elapsed = new Date() - new Date(profile.planStartDate);
-                const timePct = Math.min(Math.max((elapsed / total) * 100, 0), 100).toFixed(1);
-                const weightPct = parseFloat(progress);
-                return { timeProgress: parseFloat(timePct), weightProgress: weightPct, status: weightPct > parseFloat(timePct) + 5 ? 'AHEAD' : (weightPct < parseFloat(timePct) - 5 ? 'BEHIND' : 'EVEN'), daysLeft: Math.ceil((new Date(profile.targetDate) - new Date()) / 86400000) };
-            }, [profile, progress]);
-
-            const prediction = useMemo(() => {
-                if (weeklyData.length < 2) return null;
-                const cur = weeklyData[weeklyData.length-2].avgWeight - weeklyData[weeklyData.length-1].avgWeight;
-                const need = (currentStats?.weight - profile.targetWeight) / (raceMetrics.daysLeft / 7);
-                let rate = 0, advice = '';
-                if (cur <= 0) { rate = 10; advice = '周均重反弹。请检查饮食隐形热量或是否有过度压力。'; }
-                else {
-                    const r = cur / need;
-                    if (r >= 1.0) { rate = 95; advice = '速度完美！保持节奏即可准时达成目标。'; }
-                    else if (r >= 0.7) { rate = 70; advice = `速度 (${cur.toFixed(1)}kg/周) 稍慢。建议增加 200kcal 缺口。`; }
-                    else { rate = 40; advice = '进度滞后，需要严格执行或延长日期。'; }
+            // --- 云端数据写入操作 ---
+            const saveSettings = async () => {
+                setProfile(tempProfile);
+                setIsSettingsOpen(false);
+                if (db && user) {
+                    const profileRef = window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'profile');
+                    await window.fb.setDoc(profileRef, { profileData: tempProfile, weeklyRate });
                 }
-                return { cur, need, rate, advice, isStagnant: cur <= 0 };
-            }, [weeklyData, currentStats, profile, raceMetrics]);
-
-            const coachMessage = useMemo(() => {
-                if (logs.length === 0) return { title: "开启重塑", content: "第一步最难，但你已经迈出去了。准备好迎接新的肉体了吗？", icon: "flag", color: "text-indigo-500" };
-                if (streak >= 3 && logs[0].date === new Date().toISOString().split('T')[0]) return { title: `连续自律 ${streak} 天`, content: "你正在形成肌肉记忆。意志如铁，重塑新生！", icon: "bolt", color: "text-yellow-600" };
-                if (raceMetrics.status === "AHEAD") return { title: "完美领跑", content: `进度 (${progress}%) 领先于计划。对自己够狠，才能稳住优势。`, icon: "emoji_events", color: "text-amber-500" };
-                if (raceMetrics.status === "BEHIND") return { title: "状态提醒", content: "进度稍缓。试着今晚早睡一小时，代谢会感谢你的自律。", icon: "timer", color: "text-rose-500" };
-                return { title: "稳如磐石", content: "稳定的节奏就是最快的速度。像机器一样精准执行计划。", icon: "shield", color: "text-emerald-500" };
-            }, [logs, raceMetrics, progress, streak]);
-
-            const getRanges = (type) => {
-                if (type === 'bf') return { min: 5, max: 35, ranges: [{ min: 5, max: 13, label: '运动员', color: 'bg-emerald-500' }, { min: 13, max: 18, label: '健身', color: 'bg-emerald-600' }, { min: 18, max: 25, label: '标准', color: 'bg-indigo-500' }, { min: 25, max: 35, label: '肥胖', color: 'bg-rose-500' }] };
-                return { min: 16, max: 26, ranges: [{ min: 16, max: 18, label: '基础', color: 'bg-rose-500' }, { min: 18, max: 20, label: '普通', color: 'bg-orange-500' }, { min: 20, max: 22, label: '训练痕迹', color: 'bg-yellow-500' }, { min: 22, max: 24, label: '强壮', color: 'bg-emerald-500' }, { min: 24, max: 26, label: '极限', color: 'bg-purple-500' }] };
             };
-            const bfConfig = getRanges('bf');
-            const ffmiConfig = getRanges('ffmi');
 
-            // Actions
             const openAddModal = () => {
                 setEditingLogId(null);
                 const latestLog = logs[0] || {};
                 const latestFatLog = logs.find(l => l.fat > 0) || {};
                 const latestMusLog = logs.find(l => l.muscle > 0) || {};
-
-                setFormData({ 
-                    date: new Date().toISOString().split('T')[0], 
-                    weight: latestLog.weight || profile.startWeight || '', 
-                    fat: latestFatLog.fat || '', 
-                    muscle: latestMusLog.muscle || '' 
-                }); 
+                setFormData({ date: new Date().toISOString().split('T')[0], weight: latestLog.weight || profile.startWeight || '', fat: latestFatLog.fat || '', muscle: latestMusLog.muscle || '' }); 
                 setIsEntryOpen(true); 
             };
-
             const openEditModal = (log) => { setFormData({ date: log.date, weight: log.weight, fat: log.fat || '', muscle: log.muscle || '' }); setEditingLogId(log.id); setIsEntryOpen(true); };
-            const handleSaveLog = (e) => { e.preventDefault(); if (!formData.weight) return; const entry = { ...formData, id: editingLogId || Date.now(), weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; const newLogs = editingLogId ? logs.map(l => l.id === editingLogId ? entry : l) : [entry, ...logs]; setLogs(newLogs.sort((a,b)=>new Date(b.date)-new Date(a.date))); setIsEntryOpen(false); setEditingLogId(null); };
-            const requestDelete = (id) => { setDeleteId(id); }; 
-            const confirmDelete = () => { if (deleteId) { setLogs(logs.filter(l => l.id !== deleteId)); setDeleteId(null); } };
-            const confirmReset = () => { 
-                localStorage.removeItem(STORAGE_KEY_PROFILE); 
-                localStorage.removeItem(STORAGE_KEY_LOGS); 
-                localStorage.removeItem(STORAGE_KEY_RATE); // 重置时也要清空配速
-                setProfile({ age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
-                setWeeklyRate(0.5); // 重置为默认值
-                setLogs([]); 
-                setOnboardingStep(0); 
-                setIsSettingsOpen(false); 
-                setIsResetConfirmOpen(false);
+            
+            const handleSaveLog = async (e) => { 
+                e.preventDefault(); 
+                if (!formData.weight || !db || !user) return; 
+                const entryId = editingLogId || Date.now(); 
+                const entry = { ...formData, id: entryId, weight: parseFloat(formData.weight), fat: parseFloat(formData.fat) || 0, muscle: parseFloat(formData.muscle) || 0 }; 
+                
+                setIsEntryOpen(false); setEditingLogId(null); 
+                await window.fb.setDoc(window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'logs', entryId.toString()), entry);
             };
-            const openSettings = () => { setTempProfile(profile); setIsSettingsOpen(true); };
-
-            // 监听数据变化并自动保存到本地 (永不丢失)
-            useEffect(() => { 
-                localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile)); 
-                localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs)); 
-            }, [profile, logs]);
-
-            // 修复：单独监听 weeklyRate 的变化，并存入本地
-            useEffect(() => {
-                localStorage.setItem(STORAGE_KEY_RATE, weeklyRate.toString());
-            }, [weeklyRate]);
-
+            const confirmDelete = async () => { 
+                if (deleteId && db && user) { 
+                    const idToDelete = deleteId;
+                    setDeleteId(null); 
+                    await window.fb.deleteDoc(window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'logs', idToDelete.toString()));
+                } 
+            };
+            
+            // 建档完成上传云端
             useEffect(() => { 
                 if (onboardingStep === 5) { 
-                    setTimeout(() => { 
-                        if (profile.startWeight) {
-                            setLogs([{ id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 }]); 
+                    setTimeout(async () => { 
+                        const initLog = { id: Date.now(), date: new Date().toISOString().split('T')[0], weight: parseFloat(profile.startWeight), fat: parseFloat(profile.startFat)||0, muscle: parseFloat(profile.startMuscle)||0 };
+                        const newProfile = {...profile, initialized: true};
+                        
+                        if (db && user) {
+                            const profileRef = window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'config', 'profile');
+                            await window.fb.setDoc(profileRef, { profileData: newProfile, weeklyRate });
+                            await window.fb.setDoc(window.fb.doc(db, 'artifacts', appId, 'users', user.uid, 'logs', initLog.id.toString()), initLog);
                         }
-                        setProfile(p => ({...p, initialized: true})); 
                     }, 2000); 
                 } 
             }, [onboardingStep]);
 
+
+            // ================= RENDER =================
+            if (authState === 'CHECKING') {
+                return <div className="min-h-screen flex items-center justify-center bg-[#0F172A] text-white"><div className="animate-pulse flex flex-col items-center"><SpikeLogo size={64}/><p className="mt-4 text-slate-500 font-bold tracking-widest text-xs">连接云端神经...</p></div></div>;
+            }
+
+            if (authState === 'NO_CONFIG') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F172A] text-white p-8">
+                        <Icon name="cloud_off" size={64} className="text-rose-500 mb-6 drop-shadow-[0_0_15px_red]" />
+                        <h2 className="text-2xl font-black mb-2">等待云端赋能</h2>
+                        <p className="text-center text-slate-400 text-sm leading-relaxed mb-8">你已经更新到了 Reshape V6 云端同步版！<br/>但你还需要为它配置一个专属的免费服务器密钥。</p>
+                        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-xs text-slate-300 w-full mb-8">
+                            请查看我刚刚发给你的 <b>《Firebase 服务器搭建指南.md》</b>，获取 <code>MY_FIREBASE_CONFIG</code> 并填入代码中。
+                        </div>
+                    </div>
+                );
+            }
+
+            if (authState === 'LOGIN') {
+                return (
+                    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0F172A] text-white p-8 relative overflow-hidden">
+                        <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-gradient-to-br from-indigo-600/10 to-purple-600/10 blur-3xl pointer-events-none"></div>
+                        <div className="w-full max-w-sm relative z-10 slide-up">
+                            <div className="text-center mb-10"><SpikeLogo size={80} className="mx-auto mb-4"/><h1 className="text-3xl font-black tracking-tighter">RESHAPE<span className="text-indigo-500">.ID</span></h1><p className="text-slate-500 text-xs font-bold tracking-widest mt-1 uppercase">云端数据中枢</p></div>
+                            <form onSubmit={handleLoginSubmit} className="space-y-4">
+                                <div><label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 block">Email</label><input type="email" required className="w-full bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-white focus:border-indigo-500 transition-colors" value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"/></div>
+                                <div><label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 block">Password</label><input type="password" required className="w-full bg-slate-900/80 border border-slate-800 p-4 rounded-2xl text-white focus:border-indigo-500 transition-colors" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••"/></div>
+                                {authError && <div className="text-rose-500 text-xs font-bold px-2 py-1 bg-rose-500/10 rounded-lg">{authError}</div>}
+                                <button type="submit" disabled={isAuthLoading} className="w-full py-4 mt-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-lg shadow-lg shadow-indigo-500/30 transition-all">
+                                    {isAuthLoading ? '验证中...' : '登 录 / 注 册'}
+                                </button>
+                                <p className="text-[10px] text-center text-slate-500 mt-4">首次登录将自动为您创建 Reshape ID</p>
+                            </form>
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- Logged In App UI ---
             if (!profile.initialized) {
                 return (
                     <div className="max-w-md mx-auto min-h-screen bg-[#0F172A] flex flex-col text-white justify-center p-8 overflow-hidden relative">
                         <div className="w-full h-1 bg-slate-800 absolute top-0 left-0"><div className="h-full bg-indigo-500 progress-bar" style={{ width: `${(onboardingStep / 5) * 100}%`, transition: 'width 0.3s ease' }}></div></div>
-                        
                         <div className="flex-1 flex flex-col justify-center relative z-10">
                             {onboardingStep === 0 && (
                                 <div className="text-center slide-up">
                                     <div className="mb-10"><SpikeLogo size={96} className="mx-auto" /></div>
                                     <h1 className="text-5xl font-black mb-4 tracking-tighter">RESHAPE</h1>
                                     <p className="text-slate-400 text-lg mb-10">意志与肉体的重构</p>
-
-                                    {/* 💡 防呆提示：如果是 iOS Safari 且非桌面启动，强制提醒 */}
-                                    {isIOSBrowser && (
-                                        <div className="bg-indigo-500/20 border border-indigo-500/50 p-4 rounded-2xl mb-8 text-left animate-pulse shadow-lg shadow-indigo-500/10">
-                                            <h4 className="text-indigo-300 font-bold text-sm mb-2 flex items-center gap-1">
-                                                <Icon name="info" size={18}/> 苹果用户防丢失指南
-                                            </h4>
-                                            <p className="text-indigo-200/80 text-xs leading-relaxed">
-                                                请点击浏览器底部 <Icon name="ios_share" size={14} className="inline text-white"/> <b>添加到主屏幕</b>。<br/>
-                                                <span className="text-rose-400 font-bold">然后再从桌面打开App填写数据！</span>否则下次打开数据会清空！
-                                            </p>
-                                        </div>
-                                    )}
-
                                     <button onClick={() => setOnboardingStep(1)} className="mt-8 w-full py-5 bg-white text-slate-950 font-black rounded-full text-xl shadow-2xl transition-transform active:scale-95">开始锻造</button>
                                 </div>
                             )}
@@ -454,7 +450,7 @@
                             {onboardingStep === 1 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">基础档案</h2>
                                 <div className="space-y-8">
-                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">代号 / 昵称</label><input autoFocus className="w-full bg-transparent border-b-2 border-slate-700 py-3 text-3xl font-black outline-none focus:border-indigo-500 text-white placeholder-slate-700" value={profile.name} onChange={e=>setProfile({...profile, name:e.target.value})} placeholder="Name..."/></div>
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">代号 / 昵称</label><input autoFocus className="w-full border-b-2 border-slate-700 py-3 text-3xl font-black focus:border-indigo-500 text-white placeholder-slate-700" value={profile.name||''} onChange={e=>setProfile({...profile, name:e.target.value})} placeholder="Name..."/></div>
                                     <div>
                                         <label className="text-xs text-indigo-400 font-bold uppercase block mb-4">生理性别</label>
                                         <div className="flex gap-4">
@@ -463,15 +459,15 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={()=>setOnboardingStep(2)} disabled={!profile.name || !profile.gender} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                                <button onClick={()=>setOnboardingStep(2)} disabled={!profile.name || !profile.gender} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50">下一步</button>
                             </div>}
 
                             {onboardingStep === 2 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">身体参数</h2>
                                 <div className="space-y-6">
                                     <div className="flex gap-4">
-                                        <div className="flex-1"><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">身高 (CM)</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-3xl font-bold outline-none" value={profile.height} onChange={e=>setProfile({...profile, height:e.target.value})}/></div>
-                                        <div className="flex-1"><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">年龄</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-3xl font-bold outline-none" value={profile.age} onChange={e=>setProfile({...profile, age:e.target.value})}/></div>
+                                        <div className="flex-1"><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">身高 (CM)</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-3xl font-bold" value={profile.height||''} onChange={e=>setProfile({...profile, height:e.target.value})}/></div>
+                                        <div className="flex-1"><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">年龄</label><input type="number" className="w-full bg-slate-900 p-5 rounded-2xl text-3xl font-bold" value={profile.age||''} onChange={e=>setProfile({...profile, age:e.target.value})}/></div>
                                     </div>
                                     <div>
                                         <label className="text-xs text-indigo-400 font-bold uppercase block mb-3">日常活动强度</label>
@@ -485,23 +481,23 @@
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={()=>setOnboardingStep(3)} disabled={!profile.height || !profile.age} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                                <button onClick={()=>setOnboardingStep(3)} disabled={!profile.height || !profile.age} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50">下一步</button>
                             </div>}
 
                             {onboardingStep === 3 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">当前现状</h2>
-                                <div className="space-y-6"><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">当前体重 (KG)</label><input type="number" step="0.1" autoFocus className="w-full bg-slate-900 p-5 rounded-2xl text-5xl font-black outline-none" value={profile.startWeight} onChange={e=>setProfile({...profile, startWeight:e.target.value})}/></div><div className="grid grid-cols-2 gap-4"><input type="number" step="0.1" className="bg-slate-900 p-4 rounded-xl font-bold outline-none text-white placeholder-slate-700" placeholder="体脂KG (选填)" value={profile.startFat} onChange={e=>setProfile({...profile, startFat:e.target.value})}/><input type="number" step="0.1" className="bg-slate-900 p-4 rounded-xl font-bold outline-none text-white placeholder-slate-700" placeholder="肌肉KG (选填)" value={profile.startMuscle} onChange={e=>setProfile({...profile, startMuscle:e.target.value})}/></div></div>
-                                <button onClick={()=>setOnboardingStep(4)} disabled={!profile.startWeight} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">下一步</button>
+                                <div className="space-y-6"><div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">当前体重 (KG)</label><input type="number" step="0.1" autoFocus className="w-full bg-slate-900 p-5 rounded-2xl text-5xl font-black" value={profile.startWeight||''} onChange={e=>setProfile({...profile, startWeight:e.target.value})}/></div><div className="grid grid-cols-2 gap-4"><input type="number" step="0.1" className="bg-slate-900 p-4 rounded-xl font-bold text-white placeholder-slate-700" placeholder="体脂KG (选填)" value={profile.startFat||''} onChange={e=>setProfile({...profile, startFat:e.target.value})}/><input type="number" step="0.1" className="bg-slate-900 p-4 rounded-xl font-bold text-white placeholder-slate-700" placeholder="肌肉KG (选填)" value={profile.startMuscle||''} onChange={e=>setProfile({...profile, startMuscle:e.target.value})}/></div></div>
+                                <button onClick={()=>setOnboardingStep(4)} disabled={!profile.startWeight} className="mt-12 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50">下一步</button>
                             </div>}
 
                             {onboardingStep === 4 && <div className="w-full slide-up">
                                 <h2 className="text-3xl font-black mb-8">定下目标</h2>
                                 <div className="space-y-6">
-                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体重 (KG)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold outline-none" value={profile.targetWeight} onChange={e=>handleOnboardingGoalChange(weeklyRate, e.target.value)}/></div>
-                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体脂 (%)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-2xl font-bold outline-none" value={profile.targetFatRate} onChange={e=>setProfile({...profile, targetFatRate:e.target.value})}/></div>
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体重 (KG)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-4xl font-bold" value={profile.targetWeight||''} onChange={e=>handleOnboardingGoalChange(weeklyRate, e.target.value)}/></div>
+                                    <div><label className="text-xs text-indigo-400 font-bold uppercase block mb-2">目标体脂 (%)</label><input type="number" step="0.1" className="w-full bg-slate-900 p-5 rounded-2xl text-2xl font-bold" value={profile.targetFatRate||''} onChange={e=>setProfile({...profile, targetFatRate:e.target.value})}/></div>
                                     <div className="bg-slate-800 p-5 rounded-2xl border border-slate-700"><div className="flex justify-between items-center mb-4"><label className="text-xs font-bold text-slate-300 uppercase flex items-center gap-1"><Icon name="speed" size={16} className="text-emerald-400"/> 每周减重配速</label><span className="text-emerald-400 font-black text-lg">{weeklyRate} <span className="text-xs text-slate-500 font-bold">KG/周</span></span></div><input type="range" min="0.1" max="1.5" step="0.1" value={weeklyRate} onChange={e=>handleOnboardingGoalChange(e.target.value, profile.targetWeight)} className="w-full mb-2"/><div className="flex justify-between text-[10px] font-bold text-slate-500 mb-6"><span>温和</span><span className={weeklyRate>=0.5&&weeklyRate<=1.0?"text-emerald-400":""}>{weeklyRate>=0.5&&weeklyRate<=1.0?"✅ 黄金区间":"推荐"}</span><span>极速</span></div><div className="flex items-center gap-3 bg-slate-900 p-4 rounded-xl"><div className="p-2 bg-slate-800 rounded-lg text-slate-400"><Icon name="event" size={20}/></div><div><p className="text-[10px] text-slate-500 uppercase font-bold mb-0.5">预计达成日期</p><p className="text-white font-bold text-lg">{profile.targetDate||'--'}</p></div></div></div>
                                 </div>
-                                <button onClick={()=>setOnboardingStep(5)} disabled={!profile.targetWeight || !profile.targetDate} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50 transition-transform active:scale-95">生成计划</button>
+                                <button onClick={()=>setOnboardingStep(5)} disabled={!profile.targetWeight || !profile.targetDate} className="mt-8 w-full py-5 bg-indigo-600 rounded-full font-black text-xl shadow-lg disabled:opacity-50">生成并上传云端</button>
                             </div>}
 
                             {onboardingStep === 5 && <div className="text-center animate-pulse"><SpikeLogo size={80} className="mx-auto mb-8"/><p className="text-xl font-bold tracking-widest uppercase">重组身体机能...</p></div>}
@@ -511,7 +507,7 @@
             }
 
             return (
-                <div className="max-w-md mx-auto bg-[#F8FAFC] min-h-screen pb-32 overflow-x-hidden relative">
+                <div className="max-w-md mx-auto bg-[#F8FAFC] min-h-screen pb-32 overflow-x-hidden relative text-slate-900">
                     <header className="relative bg-[#0F172A] pb-24 rounded-b-[3.5rem] overflow-hidden shadow-2xl">
                         <div className="absolute top-[-50%] left-[-20%] w-[150%] h-[150%] bg-gradient-to-br from-indigo-900/20 via-slate-900 to-transparent blur-3xl pointer-events-none animate-pulse"></div>
                         <div className="relative z-10 px-8 pt-14 text-white">
@@ -519,7 +515,9 @@
                                 <div className="flex items-center gap-4">
                                     <SpikeLogo size={48} />
                                     <div>
-                                        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RESHAPE</div>
+                                        <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5 flex items-center gap-1">
+                                            RESHAPE <span className="text-emerald-400 text-[8px] border border-emerald-400/30 px-1 rounded-sm">CLOUD</span>
+                                        </div>
                                         <h1 className="text-2xl font-black">{profile.name}</h1>
                                     </div>
                                 </div>
@@ -556,21 +554,12 @@
                                 <div className="mt-4 pt-4 border-t border-amber-200/30">
                                     <div className="flex justify-between items-center mb-2">
                                          <span className="text-[10px] font-bold text-amber-800 uppercase opacity-70">5:3:2 饮食法推荐</span>
-                                         {prediction?.isStagnant && <span className="text-[8px] font-bold text-rose-500 bg-white px-1.5 py-0.5 rounded shadow-sm border border-rose-100 flex items-center gap-1"><Icon name="warning" size={10}/> 平台期：建议降低碳水</span>}
+                                         {prediction?.isStagnant && <span className="text-[8px] font-bold text-rose-500 bg-white px-1.5 py-0.5 rounded shadow-sm border border-rose-100 flex items-center gap-1"><Icon name="warning" size={10}/> 建议降碳</span>}
                                     </div>
                                     <div className="flex gap-2">
-                                        <div className="flex-1 bg-white/60 p-2 rounded-xl text-center">
-                                            <div className="text-[10px] text-amber-500 font-bold mb-0.5">碳水 (50%)</div>
-                                            <div className="text-base font-black text-amber-900">{macros.carbs}g</div>
-                                        </div>
-                                        <div className="flex-1 bg-white/60 p-2 rounded-xl text-center">
-                                            <div className="text-[10px] text-amber-500 font-bold mb-0.5">蛋白 (30%)</div>
-                                            <div className="text-base font-black text-amber-900">{macros.protein}g</div>
-                                        </div>
-                                         <div className="flex-1 bg-white/60 p-2 rounded-xl text-center">
-                                            <div className="text-[10px] text-amber-500 font-bold mb-0.5">脂肪 (20%)</div>
-                                            <div className="text-base font-black text-amber-900">{macros.fat}g</div>
-                                        </div>
+                                        <div className="flex-1 bg-white/60 p-2 rounded-xl text-center"><div className="text-[10px] text-amber-500 font-bold mb-0.5">碳水 (50%)</div><div className="text-base font-black text-amber-900">{macros.carbs}g</div></div>
+                                        <div className="flex-1 bg-white/60 p-2 rounded-xl text-center"><div className="text-[10px] text-amber-500 font-bold mb-0.5">蛋白 (30%)</div><div className="text-base font-black text-amber-900">{macros.protein}g</div></div>
+                                         <div className="flex-1 bg-white/60 p-2 rounded-xl text-center"><div className="text-[10px] text-amber-500 font-bold mb-0.5">脂肪 (20%)</div><div className="text-base font-black text-amber-900">{macros.fat}g</div></div>
                                     </div>
                                 </div>
                              )}
@@ -630,14 +619,14 @@
                                 <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2"><Icon name="fitness_center" className="text-indigo-600"/> {editingLogId?'修正数据':'记录今日'}</h2>
                                 <form onSubmit={handleSaveLog} className="space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">日期</label><input type="date" className="w-full bg-transparent font-bold" value={formData.date} onChange={e=>setFormData({...formData, date: e.target.value})} /></div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">日期</label><input type="date" className="w-full bg-transparent font-bold text-slate-800" value={formData.date} onChange={e=>setFormData({...formData, date: e.target.value})} /></div>
                                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">体重 (KG)</label><input type="number" step="0.1" required autoFocus className="w-full bg-transparent font-black text-2xl text-indigo-600" placeholder="0.0" value={formData.weight} onChange={e=>setFormData({...formData, weight: e.target.value})} /></div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">脂肪量 (KG)</label><input type="number" step="0.1" className="w-full bg-transparent font-bold text-xl" placeholder="--" value={formData.fat} onChange={e=>setFormData({...formData, fat: e.target.value})} /></div>
-                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">肌肉量 (KG)</label><input type="number" step="0.1" className="w-full bg-transparent font-bold text-xl" placeholder="--" value={formData.muscle} onChange={e=>setFormData({...formData, muscle: e.target.value})} /></div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">脂肪量 (KG)</label><input type="number" step="0.1" className="w-full bg-transparent font-bold text-xl text-slate-800" placeholder="--" value={formData.fat} onChange={e=>setFormData({...formData, fat: e.target.value})} /></div>
+                                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100"><label className="text-[10px] font-black text-slate-400 uppercase mb-2 block tracking-widest">肌肉量 (KG)</label><input type="number" step="0.1" className="w-full bg-transparent font-bold text-xl text-slate-800" placeholder="--" value={formData.muscle} onChange={e=>setFormData({...formData, muscle: e.target.value})} /></div>
                                     </div>
-                                    <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform">确认记录</button>
+                                    <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform">确认同步到云端</button>
                                 </form>
                             </div>
                         </div>
@@ -648,7 +637,10 @@
                             <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onClick={() => setIsSettingsOpen(false)}></div>
                             <div className="relative w-full bg-white rounded-t-[3rem] p-8 animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto no-scrollbar">
                                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-8"></div>
-                                <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-2"><Icon name="tune" className="text-indigo-600"/> 计划调整</h2>
+                                <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center justify-between">
+                                    <span className="flex items-center gap-2"><Icon name="tune" className="text-indigo-600"/> 计划调整</span>
+                                    <span className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-1 rounded font-bold flex items-center gap-1"><Icon name="cloud_done" size={14}/> 已连接云端</span>
+                                </h2>
                                 
                                 <div className="space-y-6">
                                     <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200">
@@ -656,11 +648,11 @@
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase">目标体重</label>
-                                                <input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetWeight} onChange={e=>handleSettingsGoalChange(weeklyRate, e.target.value)} />
+                                                <input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetWeight||''} onChange={e=>handleSettingsGoalChange(weeklyRate, e.target.value)} />
                                             </div>
                                             <div>
                                                 <label className="text-[10px] font-bold text-slate-400 uppercase">目标体脂</label>
-                                                <input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetFatRate} onChange={e=>setTempProfile({...tempProfile, targetFatRate:e.target.value})} />
+                                                <input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetFatRate||''} onChange={e=>setTempProfile({...tempProfile, targetFatRate:e.target.value})} />
                                             </div>
                                         </div>
                                     </div>
@@ -710,30 +702,23 @@
 
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-2 bg-slate-800 rounded-lg text-slate-400">
-                                                    <Icon name="event" size={20}/>
-                                                </div>
+                                                <div className="p-2 bg-slate-800 rounded-lg text-slate-400"><Icon name="event" size={20}/></div>
                                                 <span className="text-xs text-slate-400 font-bold uppercase">预计达成</span>
                                             </div>
-                                            <p className="text-white font-black text-xl tracking-tight">
-                                                {tempProfile.targetDate || '--'}
-                                            </p>
+                                            <p className="text-white font-black text-xl tracking-tight">{tempProfile.targetDate || '--'}</p>
                                         </div>
                                     </div>
 
-                                    <button 
-                                        onClick={() => { setProfile({...tempProfile}); setIsSettingsOpen(false); }} 
-                                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition-transform"
-                                    >
-                                        保存新计划
+                                    <button onClick={saveSettings} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 active:scale-95 transition-transform">
+                                        保存并同步
                                     </button>
                                     
-                                    <button 
-                                        onClick={() => setIsResetConfirmOpen(true)} 
-                                        className="w-full py-4 text-rose-500 font-bold flex items-center justify-center gap-2 opacity-60 hover:opacity-100"
-                                    >
-                                        <Icon name="delete_forever" size={18}/> 重置所有数据
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button onClick={handleLogout} className="flex-1 py-4 text-slate-500 bg-slate-100 rounded-2xl font-bold flex items-center justify-center gap-2">
+                                            <Icon name="logout" size={18}/> 退出账号
+                                        </button>
+                                        {/* 彻底重置不再那么重要，因为有了账号系统，但保留给需要清空重练的用户 */}
+                                    </div>
                                 </div>
                             </div>
                         </div>
