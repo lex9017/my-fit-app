@@ -74,6 +74,7 @@
         // 提升到组件外部，确保全局唯一，绝对不丢失数据
         const STORAGE_KEY_PROFILE = 'reshape_global_profile';
         const STORAGE_KEY_LOGS = 'reshape_global_logs';
+        const STORAGE_KEY_RATE = 'reshape_global_weekly_rate'; // 新增：保存配速的专属钥匙
 
         const { useState, useEffect, useMemo } = React;
         const RechartsObj = window.Recharts || null;
@@ -186,9 +187,14 @@
                 const saved = localStorage.getItem(STORAGE_KEY_LOGS);
                 return saved ? JSON.parse(saved) : [];
             });
+            
+            // 修复：从 localStorage 读取每周减重配速，如果没有则默认 0.5
+            const [weeklyRate, setWeeklyRate] = useState(() => {
+                const savedRate = localStorage.getItem(STORAGE_KEY_RATE);
+                return savedRate ? parseFloat(savedRate) : 0.5;
+            });
 
             const [onboardingStep, setOnboardingStep] = useState(0); 
-            const [weeklyRate, setWeeklyRate] = useState(0.5);
             const [activeTab, setActiveTab] = useState('home');
             const [isEntryOpen, setIsEntryOpen] = useState(false);
             const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -221,12 +227,12 @@
                  return d.toISOString().split('T')[0];
             };
             const handleOnboardingGoalChange = (newRate, newTargetWeight) => {
-                setWeeklyRate(newRate);
+                setWeeklyRate(parseFloat(newRate));
                 const newDate = calculateDateFromRate(newRate, profile.startWeight, newTargetWeight);
                 setProfile(prev => ({ ...prev, targetWeight: newTargetWeight, targetDate: newDate }));
             };
             const handleSettingsGoalChange = (rate, w) => {
-                setWeeklyRate(rate);
+                setWeeklyRate(parseFloat(rate));
                 const newDate = calculateDateFromRate(rate, profile.startWeight, w);
                 setTempProfile(prev => ({ ...prev, targetWeight: w, targetDate: newDate }));
             };
@@ -384,7 +390,9 @@
             const confirmReset = () => { 
                 localStorage.removeItem(STORAGE_KEY_PROFILE); 
                 localStorage.removeItem(STORAGE_KEY_LOGS); 
+                localStorage.removeItem(STORAGE_KEY_RATE); // 重置时也要清空配速
                 setProfile({ age: '', height: '', gender: 'male', activityLevel: 1.2, startWeight: '', startFat: '', startMuscle: '', targetWeight: '', targetFatRate: '', targetDate: '', planStartDate: new Date().toISOString().split('T')[0], name: '', initialized: false }); 
+                setWeeklyRate(0.5); // 重置为默认值
                 setLogs([]); 
                 setOnboardingStep(0); 
                 setIsSettingsOpen(false); 
@@ -397,6 +405,11 @@
                 localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile)); 
                 localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs)); 
             }, [profile, logs]);
+
+            // 修复：单独监听 weeklyRate 的变化，并存入本地
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEY_RATE, weeklyRate.toString());
+            }, [weeklyRate]);
 
             useEffect(() => { 
                 if (onboardingStep === 5) { 
@@ -506,7 +519,6 @@
                                 <div className="flex items-center gap-4">
                                     <SpikeLogo size={48} />
                                     <div>
-                                        {/* FIX: Removed the dot in RES.HAPE */}
                                         <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">RESHAPE</div>
                                         <h1 className="text-2xl font-black">{profile.name}</h1>
                                     </div>
@@ -642,8 +654,14 @@
                                     <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200">
                                         <h4 className="text-xs text-indigo-400 font-bold uppercase mb-4">目标设定</h4>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">目标体重</label><input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetWeight} onChange={e=>handleSettingsGoalChange(weeklyRate, e.target.value)} /></div>
-                                            <div><label className="text-[10px] font-bold text-slate-400 uppercase">目标体脂</label><input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetFatRate} onChange={e=>setTempProfile({...tempProfile, targetFatRate:e.target.value})} /></div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase">目标体重</label>
+                                                <input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetWeight} onChange={e=>handleSettingsGoalChange(weeklyRate, e.target.value)} />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase">目标体脂</label>
+                                                <input type="number" step="0.1" className="w-full bg-white p-3 rounded-xl font-black text-indigo-600 mt-1 shadow-sm" value={tempProfile.targetFatRate} onChange={e=>setTempProfile({...tempProfile, targetFatRate:e.target.value})} />
+                                            </div>
                                         </div>
                                     </div>
 
